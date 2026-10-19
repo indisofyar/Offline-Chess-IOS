@@ -78,6 +78,26 @@ jobs:
           for t in json.load(sys.stdin).get('testNodes', []):
               walk(t)"
 
+      - name: Print crash reports
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/*Restaurant*.ips 2>/dev/null | head -3); do
+            echo "=== $f"
+            python3 - "$f" <<'PY'
+          import json, sys
+          lines = open(sys.argv[1]).read().split("\n", 1)
+          report = json.loads(lines[1])
+          print("exception:", report.get("exception"))
+          print("asi:", report.get("asi"))
+          images = report.get("usedImages", [])
+          for thread in report.get("threads", []):
+              if thread.get("triggered"):
+                  for frame in thread.get("frames", [])[:25]:
+                      image = images[frame.get("imageIndex", 0)].get("name", "?") if images else "?"
+                      print(" ", image, frame.get("symbol", "?"), frame.get("sourceFile", ""), frame.get("sourceLine", ""))
+          PY
+          done
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4
