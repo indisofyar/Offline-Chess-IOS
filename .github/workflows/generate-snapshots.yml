@@ -81,7 +81,8 @@ jobs:
       - name: Print crash reports
         if: failure()
         run: |
-          for f in $(ls -t ~/Library/Logs/DiagnosticReports/*Restaurant*.ips 2>/dev/null | head -3); do
+          ls -t ~/Library/Logs/DiagnosticReports/ | grep Restaurant | head -3 | while IFS= read -r name; do
+            f="$HOME/Library/Logs/DiagnosticReports/$name"
             echo "=== $f"
             python3 - "$f" <<'PY'
           import json, sys
