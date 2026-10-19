@@ -47,6 +47,30 @@ jobs:
             -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
             -scheme "Restaurant Tracker"
 
+      - name: Pick iOS simulator
+        run: |
+          # Prefer an iPhone 16 on the newest iOS runtime; fall back to any iPhone, or create one.
+          pick() {
+            xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          ios = sorted((k for k in devices if '.iOS-' in k), key=lambda k: [int(p) for p in k.rsplit('iOS-', 1)[1].split('-')], reverse=True)
+          phones = [d for k in ios for d in devices[k] if d['name'].startswith('iPhone')]
+          preferred = [d for d in phones if d['name'] == 'iPhone 16']
+          print((preferred or phones or [{'udid': ''}])[0]['udid'])"
+          }
+          SIM_ID=$(pick)
+          if [ -z "$SIM_ID" ]; then
+            RUNTIME=$(xcrun simctl list runtimes available -j | python3 -c "
+          import json, sys
+          runtimes = [r for r in json.load(sys.stdin)['runtimes'] if r['platform'] == 'iOS']
+          print(runtimes[-1]['identifier'] if runtimes else '')")
+            echo "No iPhone simulator found, creating one on $RUNTIME"
+            SIM_ID=$(xcrun simctl create "iPhone 16" "com.apple.CoreSimulator.SimDeviceType.iPhone-16" "$RUNTIME")
+          fi
+          xcrun simctl list devices | grep "$SIM_ID"
+          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
+
       - name: Clear old snapshots
         run: rm -rf snapshots && mkdir -p snapshots
 
@@ -58,7 +82,7 @@ jobs:
           xcodebuild test \
             -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
             -scheme "Restaurant Tracker" \
-            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -destination "platform=iOS Simulator,id=$SIM_ID" \
             -only-testing "Restaurant TrackerTests/SnapshotTests" \
             -resultBundlePath "$RUNNER_TEMP/SnapshotTests.xcresult" \
             CODE_SIGNING_ALLOWED=NO \
