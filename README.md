@@ -31,4 +31,19 @@ The [`Generate UI Snapshots`](.github/workflows/generate-snapshots.yml) workflow
 
 To get a new screen into the snapshots, just add a `#Preview` for it. Previews use `SampleData.makeContainer()` (an in-memory SwiftData store with fixed sample data) so the screenshots stay stable between runs.
 
+## Installing on your phone (TestFlight)
+
+The [`Upload to TestFlight`](.github/workflows/testflight.yml) workflow builds a signed Release `.ipa` on a macOS runner, uploads it to TestFlight and also attaches the `.ipa` to the run. Signing is automatic via an App Store Connect API key, so no certificates or provisioning profiles need to be exported.
+
+One-time setup:
+
+1. **App record** – in [App Store Connect](https://appstoreconnect.apple.com) go to *Apps → + → New App* and use bundle ID `indi.Restaurant-Tracker` (register it under *Certificates, Identifiers & Profiles → Identifiers* first if it isn't listed).
+2. **API key** – *Users and Access → Integrations → App Store Connect API → Team Keys → +*, role **Admin** (needed for cloud-managed signing). Download the `.p8` file (it can only be downloaded once) and note the **Key ID** and **Issuer ID**.
+3. **GitHub secrets** – in the repo's *Settings → Secrets and variables → Actions*, add:
+   - `ASC_KEY_ID` – the Key ID
+   - `ASC_ISSUER_ID` – the Issuer ID
+   - `ASC_KEY_P8` – the full contents of the `.p8` file, including the `BEGIN`/`END` lines
+
+To ship a build, run the workflow from the Actions tab (*Upload to TestFlight → Run workflow*). The build number is the workflow run number. After Apple finishes processing (usually 5–15 minutes) the build appears in the TestFlight app on any device signed in as a tester on the app — you're automatically an internal tester as the account owner.
+
 Requires Xcode 26 or later (iOS 18 deployment target).
