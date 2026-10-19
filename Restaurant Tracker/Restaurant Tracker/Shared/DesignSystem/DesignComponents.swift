@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - Restaurant Pin
 
@@ -124,7 +125,8 @@ struct FilterChip: View {
 }
 
 #Preview("Design Components") {
-    let restaurants = SampleData.restaurants
+    let container = SampleData.makeContainer()
+    let restaurants = try! container.mainContext.fetch(FetchDescriptor<Restaurant>(sortBy: [SortDescriptor(\.name)]))
     VStack(spacing: 24) {
         HStack(spacing: 16) {
             ForEach(restaurants.prefix(4)) { restaurant in
@@ -144,4 +146,5 @@ struct FilterChip: View {
         }
     }
     .padding()
+    .modelContainer(container)
 }

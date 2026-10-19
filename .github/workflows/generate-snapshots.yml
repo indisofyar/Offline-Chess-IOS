@@ -60,8 +60,30 @@ jobs:
             -scheme "Restaurant Tracker" \
             -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
             -only-testing "Restaurant TrackerTests/SnapshotTests" \
+            -resultBundlePath "$RUNNER_TEMP/SnapshotTests.xcresult" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
+
+      - name: Print test failures
+        if: failure()
+        run: |
+          xcrun xcresulttool get test-results tests --path "$RUNNER_TEMP/SnapshotTests.xcresult" --format json \
+            | python3 -c "import json,sys
+          def walk(n, path=''):
+              name = n.get('name', '')
+              if n.get('nodeType') == 'Failure Message' or (n.get('result') == 'Failed' and not n.get('children')):
+                  print(path, '->', name)
+              for c in n.get('children', []):
+                  walk(c, path + '/' + name)
+          for t in json.load(sys.stdin).get('testNodes', []):
+              walk(t)"
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SnapshotTests.xcresult
+          path: ${{ runner.temp }}/SnapshotTests.xcresult
 
       - name: Remove JSON files from snapshots
         run: find snapshots/ -name "*.json" -delete
