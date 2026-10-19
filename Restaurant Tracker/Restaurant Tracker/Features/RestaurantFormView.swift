@@ -233,14 +233,12 @@ struct RestaurantFormView: View {
     NavigationStack {
         RestaurantFormView()
     }
-    .modelContainer(SampleData.makeContainer(empty: true))
+    .modelContainer(SampleData.emptyContainer)
 }
 
 #Preview("Edit Restaurant") {
-    let container = SampleData.makeContainer()
-    let restaurant = try! container.mainContext.fetch(FetchDescriptor<Restaurant>(sortBy: [SortDescriptor(\.name)])).first!
     NavigationStack {
-        RestaurantFormView(restaurant: restaurant)
+        RestaurantFormView(restaurant: SampleData.restaurant)
     }
-    .modelContainer(container)
+    .modelContainer(SampleData.container)
 }

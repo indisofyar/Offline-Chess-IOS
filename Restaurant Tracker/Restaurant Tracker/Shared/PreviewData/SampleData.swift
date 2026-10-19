@@ -35,7 +35,17 @@ enum SampleData {
         ]
     }
 
-    static func makeContainer(empty: Bool = false) -> ModelContainer {
+    /// Shared in-memory stores for previews. They live for the whole process so that models
+    /// handed to views (e.g. map annotations that re-render asynchronously) never outlive their store.
+    static let container = makeContainer()
+    static let emptyContainer = makeContainer(empty: true)
+
+    /// A sample restaurant from the shared preview store.
+    static var restaurant: Restaurant {
+        try! container.mainContext.fetch(FetchDescriptor<Restaurant>(sortBy: [SortDescriptor(\.name)])).first!
+    }
+
+    private static func makeContainer(empty: Bool = false) -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: Restaurant.self, configurations: config)
         if !empty {

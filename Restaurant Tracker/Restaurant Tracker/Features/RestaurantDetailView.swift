@@ -103,7 +103,7 @@ struct RestaurantDetailView: View {
                 interactionModes: []
             ) {
                 Annotation(restaurant.name, coordinate: restaurant.coordinate, anchor: .bottom) {
-                    RestaurantPin(restaurant: restaurant)
+                    RestaurantPin(name: restaurant.name, cuisine: restaurant.cuisine, rating: restaurant.rating)
                 }
                 .annotationTitles(.hidden)
             }
@@ -135,10 +135,8 @@ struct RestaurantDetailView: View {
 }
 
 #Preview("Restaurant Detail") {
-    let container = SampleData.makeContainer()
-    let restaurant = try! container.mainContext.fetch(FetchDescriptor<Restaurant>(sortBy: [SortDescriptor(\.name)])).first!
     NavigationStack {
-        RestaurantDetailView(restaurant: restaurant)
+        RestaurantDetailView(restaurant: SampleData.restaurant)
     }
-    .modelContainer(container)
+    .modelContainer(SampleData.container)
 }

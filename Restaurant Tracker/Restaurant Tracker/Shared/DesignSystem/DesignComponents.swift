@@ -4,23 +4,24 @@
 //
 
 import SwiftUI
-import SwiftData
 
 // MARK: - Restaurant Pin
 
 struct RestaurantPin: View {
-    let restaurant: Restaurant
+    let name: String
+    let cuisine: Cuisine
+    let rating: Int
     var isSelected = false
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
                 Circle()
-                    .fill(Color.rating(restaurant.rating).gradient)
+                    .fill(Color.rating(rating).gradient)
                     .frame(width: 40, height: 40)
                     .overlay(Circle().stroke(.white, lineWidth: 2.5))
                     .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
-                Text(restaurant.cuisine.emoji)
+                Text(cuisine.emoji)
                     .font(.system(size: 20))
             }
             Image(systemName: "triangle.fill")
@@ -31,7 +32,7 @@ struct RestaurantPin: View {
         }
         .scaleEffect(isSelected ? 1.25 : 1)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
-        .accessibilityLabel("\(restaurant.name), \(restaurant.rating) stars")
+        .accessibilityLabel("\(name), \(rating) stars")
     }
 }
 
@@ -125,13 +126,12 @@ struct FilterChip: View {
 }
 
 #Preview("Design Components") {
-    let container = SampleData.makeContainer()
-    let restaurants = try! container.mainContext.fetch(FetchDescriptor<Restaurant>(sortBy: [SortDescriptor(\.name)]))
     VStack(spacing: 24) {
         HStack(spacing: 16) {
-            ForEach(restaurants.prefix(4)) { restaurant in
-                RestaurantPin(restaurant: restaurant)
-            }
+            RestaurantPin(name: "Dishoom", cuisine: .indian, rating: 5)
+            RestaurantPin(name: "Kanada-Ya", cuisine: .japanese, rating: 4)
+            RestaurantPin(name: "The Patty Shack", cuisine: .american, rating: 3)
+            RestaurantPin(name: "Corner Noodle Bar", cuisine: .thai, rating: 2, isSelected: true)
         }
         HStack {
             ForEach(1...5, id: \.self) { RatingBadge(rating: $0) }
@@ -146,5 +146,4 @@ struct FilterChip: View {
         }
     }
     .padding()
-    .modelContainer(container)
 }

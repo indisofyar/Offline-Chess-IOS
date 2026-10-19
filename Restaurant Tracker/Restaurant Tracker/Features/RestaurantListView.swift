@@ -144,10 +144,10 @@ struct RestaurantRow: View {
 
 #Preview("Visited List") {
     RestaurantListView()
-        .modelContainer(SampleData.makeContainer())
+        .modelContainer(SampleData.container)
 }
 
 #Preview("Visited List Empty") {
     RestaurantListView()
-        .modelContainer(SampleData.makeContainer(empty: true))
+        .modelContainer(SampleData.emptyContainer)
 }

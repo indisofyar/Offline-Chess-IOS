@@ -25,7 +25,12 @@ struct RestaurantMapView: View {
             UserAnnotation()
             ForEach(filteredRestaurants) { restaurant in
                 Annotation(restaurant.name, coordinate: restaurant.coordinate, anchor: .bottom) {
-                    RestaurantPin(restaurant: restaurant, isSelected: selectedRestaurant?.id == restaurant.id)
+                    RestaurantPin(
+                        name: restaurant.name,
+                        cuisine: restaurant.cuisine,
+                        rating: restaurant.rating,
+                        isSelected: selectedRestaurant?.id == restaurant.id
+                    )
                         .onTapGesture {
                             selectedRestaurant = restaurant
                         }
@@ -95,10 +100,10 @@ struct RestaurantMapView: View {
 
 #Preview("Map") {
     RestaurantMapView()
-        .modelContainer(SampleData.makeContainer())
+        .modelContainer(SampleData.container)
 }
 
 #Preview("Map Empty") {
     RestaurantMapView()
-        .modelContainer(SampleData.makeContainer(empty: true))
+        .modelContainer(SampleData.emptyContainer)
 }

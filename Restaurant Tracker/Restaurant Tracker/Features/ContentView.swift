@@ -21,11 +21,11 @@ struct ContentView: View {
 
 #Preview("Content") {
     ContentView()
-        .modelContainer(SampleData.makeContainer())
+        .modelContainer(SampleData.container)
 }
 
 #Preview("Content Dark") {
     ContentView()
-        .modelContainer(SampleData.makeContainer())
+        .modelContainer(SampleData.container)
         .preferredColorScheme(.dark)
 }
