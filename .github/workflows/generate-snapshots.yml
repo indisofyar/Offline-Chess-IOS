@@ -1,0 +1,75 @@
+name: Generate UI Snapshots
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  snapshots:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ hashFiles('**/*.swift', '**/*.xccconfig', '**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
+
+      - name: Select latest available Xcode
+        run: |
+          echo "Available Xcode versions:"
+          ls /Applications/ | grep -E "^Xcode"
+          XCODE_PATH=$(ls /Applications/ | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
+          echo "Using: $XCODE_PATH"
+          sudo xcode-select -s "/Applications/$XCODE_PATH/Contents/Developer"
+          xcodebuild -version
+
+      - name: Resolve SPM packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
+            -scheme "Restaurant Tracker"
+
+      - name: Clear old snapshots
+        run: rm -rf snapshots && mkdir -p snapshots
+
+      - name: Run snapshot tests
+        run: |
+          mkdir -p snapshots
+          TEST_RUNNER_SNAPSHOTS_EXPORT_DIR="$GITHUB_WORKSPACE/snapshots" \
+          TEST_RUNNER_SNAPSHOTS_RUNNING_FOR_PREVIEWS=1 \
+          xcodebuild test \
+            -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
+            -scheme "Restaurant Tracker" \
+            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -only-testing "Restaurant TrackerTests/SnapshotTests" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Remove JSON files from snapshots
+        run: find snapshots/ -name "*.json" -delete
+
+      - name: Commit updated snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add snapshots/
+          git diff --staged --quiet || git commit -m "chore: update UI snapshots [skip ci]"
+          git push
