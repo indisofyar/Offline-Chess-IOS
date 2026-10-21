@@ -157,26 +157,34 @@ final class ChessGame {
     /// prompt for a piece and later call ``completePromotion(to:)``.
     @discardableResult
     func makeMove(from start: Square, to end: Square) -> Bool {
-        guard let move = board.move(pieceAt: start, to: end) else { return false }
+        // Mutate a local copy and reassign the whole value, rather than
+        // calling a `mutating func` directly on `board` (an @Observable-
+        // tracked stored property), to avoid going through the macro's
+        // in-place `_modify` accessor for a large value type.
+        var updatedBoard = board
+        guard let move = updatedBoard.move(pieceAt: start, to: end) else { return false }
 
         selectedSquare = nil
         legalDestinations = []
 
-        if case let .promotion(pendingMove) = board.state {
+        if case let .promotion(pendingMove) = updatedBoard.state {
             pendingPromotion = pendingMove
         } else {
             moveHistory.append(move)
         }
 
+        board = updatedBoard
         return true
     }
 
     /// Completes a pending promotion with the chosen piece kind.
     func completePromotion(to kind: Piece.Kind) {
         guard let move = pendingPromotion else { return }
-        let completed = board.completePromotion(of: move, to: kind)
+        var updatedBoard = board
+        let completed = updatedBoard.completePromotion(of: move, to: kind)
         moveHistory.append(completed)
         pendingPromotion = nil
+        board = updatedBoard
     }
 
     /// Applies a move chosen by the bot, given in engine LAN form
@@ -186,19 +194,22 @@ final class ChessGame {
         guard let parsed = EngineLANParser.parse(move: lan, for: sideToMove, in: board.position) else {
             return false
         }
-        guard let move = board.move(pieceAt: parsed.start, to: parsed.end) else { return false }
+
+        var updatedBoard = board
+        guard let move = updatedBoard.move(pieceAt: parsed.start, to: parsed.end) else { return false }
 
         selectedSquare = nil
         legalDestinations = []
 
-        if case let .promotion(pendingMove) = board.state {
+        if case let .promotion(pendingMove) = updatedBoard.state {
             let kind = parsed.promotedPiece?.kind ?? .queen
-            let completed = board.completePromotion(of: pendingMove, to: kind)
+            let completed = updatedBoard.completePromotion(of: pendingMove, to: kind)
             moveHistory.append(completed)
         } else {
             moveHistory.append(move)
         }
 
+        board = updatedBoard
         return true
     }
 
