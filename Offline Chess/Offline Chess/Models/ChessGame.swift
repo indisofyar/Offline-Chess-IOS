@@ -64,23 +64,7 @@ extension Board.State.DrawReason {
 @Observable
 final class ChessGame {
 
-    // ChessKit's `Attacks` cache populates its lookup tables (including
-    // the bishop/rook magic-bitboard tables) on the first `Board()`
-    // construction. That population is lock-protected on the write
-    // side, but `Board`'s attack *lookups* read the cache directly,
-    // unlocked. Two `Board()`s constructed for the first time at
-    // nearly the same moment on different threads (e.g. several
-    // #Previews rendering concurrently, each building their own
-    // `ChessGame`) can race on that first population and corrupt the
-    // heap. A plain eager call at startup only changes *ordering* —
-    // it doesn't stop a genuinely concurrent `Board()` elsewhere from
-    // racing with it. A `static let` does: Swift guarantees its
-    // initializer runs exactly once and that every other thread
-    // touching it *blocks* until that run completes, so this is real
-    // cross-thread synchronization, not a hopeful race-narrowing.
-    private static let attacksWarmedUp: Void = { _ = Board() }()
-
-    private(set) var board: Board
+    private(set) var board = Board()
     private(set) var moveHistory: [Move] = []
 
     var selectedSquare: Square?
@@ -94,8 +78,6 @@ final class ChessGame {
     let botDifficulty: BotDifficulty
 
     init(mode: GameMode, humanColor: Piece.Color = .white, botDifficulty: BotDifficulty = .intermediate) {
-        _ = Self.attacksWarmedUp
-        self.board = Board()
         self.mode = mode
         self.humanColor = humanColor
         self.botDifficulty = botDifficulty
