@@ -26,7 +26,10 @@ final class PurchaseManager {
     var isPremium = false
     var lastErrorMessage: String?
 
-    private var transactionListenerTask: Task<Void, Never>?
+    // `deinit` runs nonisolated even on a `@MainActor` class, so this needs
+    // to be safe to touch off the main actor; `Task` cancellation itself is
+    // thread-safe, so `nonisolated(unsafe)` is appropriate here.
+    nonisolated(unsafe) private var transactionListenerTask: Task<Void, Never>?
 
     init() {
         transactionListenerTask = Task { [weak self] in
