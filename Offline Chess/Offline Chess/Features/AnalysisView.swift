@@ -208,15 +208,14 @@ struct AnalysisView: View {
 
 extension CompletedGameRecord {
     static var preview: CompletedGameRecord {
-        let game = ChessGame(mode: .onePlayer, humanColor: .white, botDifficulty: .intermediate)
-        game.makeMove(from: .e2, to: .e4)
-        game.makeMove(from: .e7, to: .e5)
-        game.makeMove(from: .g1, to: .f3)
-        game.makeMove(from: .b8, to: .c6)
-        game.makeMove(from: .f1, to: .c4)
-        game.makeMove(from: .f8, to: .c5)
+        // Built on a plain `Board` rather than a throwaway `ChessGame`: releasing
+        // a main-actor class right here, inside preview rendering, crashes in the
+        // Swift runtime's back-deployed isolated-deinit path on iOS 18.
+        var board = Board()
+        let squares: [(Square, Square)] = [(.e2, .e4), (.e7, .e5), (.g1, .f3), (.b8, .c6), (.f1, .c4), (.f8, .c5)]
+        let moves = squares.compactMap { board.move(pieceAt: $0.0, to: $0.1) }
         return CompletedGameRecord(
-            moves: game.moveHistory,
+            moves: moves,
             resultDescription: "Checkmate — White wins",
             mode: .onePlayer,
             botDifficulty: .intermediate,
