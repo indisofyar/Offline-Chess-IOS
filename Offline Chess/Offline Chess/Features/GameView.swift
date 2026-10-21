@@ -175,7 +175,7 @@ struct GameView: View {
                         Button {
                             game.completePromotion(to: kind)
                         } label: {
-                            PieceGlyphView(piece: Piece(kind, color: move.piece.color, square: move.end), size: 40)
+                            PieceGlyphView(piece: Piece(kind, color: move.piece.color, square: move.end), size: 40, skin: appState.boardSkin)
                                 .padding(10)
                                 .background(Color.appControlBackground, in: Circle())
                         }

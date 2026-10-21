@@ -27,18 +27,31 @@ func pieceGlyph(for piece: Piece) -> String {
     }
 }
 
+/// Draws a single piece: the skin's sprite for pixel-art skins,
+/// otherwise its Unicode glyph.
 struct PieceGlyphView: View {
     let piece: Piece
     var size: CGFloat = 36
+    var skin: BoardSkin?
 
     var body: some View {
-        Text(pieceGlyph(for: piece))
-            .font(.system(size: size))
-            .minimumScaleFactor(0.5)
-            .lineLimit(1)
-            .foregroundStyle(piece.color == .white ? .white : .black)
-            .shadow(color: .black.opacity(piece.color == .white ? 0.35 : 0), radius: 0.5, y: 0.5)
-            .accessibilityLabel("\(piece.color == .white ? "White" : "Black") \(String(describing: piece.kind))")
+        Group {
+            if skin?.usesPixelArt == true {
+                Image(PixelBoardView.spriteName(for: piece))
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size, height: size)
+            } else {
+                Text(pieceGlyph(for: piece))
+                    .font(.system(size: size))
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                    .foregroundStyle(piece.color == .white ? .white : .black)
+                    .shadow(color: .black.opacity(piece.color == .white ? 0.35 : 0), radius: 0.5, y: 0.5)
+            }
+        }
+        .accessibilityLabel("\(piece.color == .white ? "White" : "Black") \(String(describing: piece.kind))")
     }
 }
 
@@ -254,6 +267,11 @@ struct JudgmentBadge: View {
                 SkinSwatchView(skin: .walnut, isSelected: false)
                 SkinSwatchView(skin: .midnight, isSelected: false)
                 SkinSwatchView(skin: .pixel, isSelected: false)
+            }
+            HStack {
+                ForEach([Piece.Kind.queen, .rook, .bishop, .knight], id: \.self) { kind in
+                    PieceGlyphView(piece: Piece(kind, color: .white, square: .e8), size: 40, skin: .pixel)
+                }
             }
             HStack {
                 JudgmentBadge(judgment: .brilliant)
