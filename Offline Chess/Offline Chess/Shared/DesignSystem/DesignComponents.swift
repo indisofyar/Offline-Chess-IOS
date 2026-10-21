@@ -189,6 +189,15 @@ struct SkinSwatchView: View {
         VStack(spacing: 8) {
             miniBoard
                 .frame(width: 72, height: 72)
+                .overlay {
+                    if skin.usesPixelArt {
+                        Image("PixelWhiteKnight")
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 56)
+                    }
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -244,6 +253,7 @@ struct JudgmentBadge: View {
                 SkinSwatchView(skin: .classicGreen, isSelected: true)
                 SkinSwatchView(skin: .walnut, isSelected: false)
                 SkinSwatchView(skin: .midnight, isSelected: false)
+                SkinSwatchView(skin: .pixel, isSelected: false)
             }
             HStack {
                 JudgmentBadge(judgment: .brilliant)

@@ -13,6 +13,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case ocean
     case midnight
     case coral
+    case pixel
 
     var id: String { rawValue }
 
@@ -23,6 +24,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: "Ocean"
         case .midnight: "Midnight"
         case .coral: "Coral"
+        case .pixel: "Pixel"
         }
     }
 
@@ -33,6 +35,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color(red: 0.86, green: 0.93, blue: 0.95)
         case .midnight: Color(red: 0.70, green: 0.72, blue: 0.78)
         case .coral: Color(red: 0.98, green: 0.92, blue: 0.86)
+        case .pixel: Color.white
         }
     }
 
@@ -43,6 +46,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color(red: 0.25, green: 0.51, blue: 0.62)
         case .midnight: Color(red: 0.24, green: 0.27, blue: 0.36)
         case .coral: Color(red: 0.82, green: 0.45, blue: 0.40)
+        case .pixel: Color(red: 0.145, green: 0.145, blue: 0.145)
         }
     }
 
@@ -54,6 +58,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color.white.opacity(0.55)
         case .midnight: Color.cyan.opacity(0.45)
         case .coral: Color.yellow.opacity(0.55)
+        case .pixel: Color.yellow.opacity(0.55)
         }
     }
 
@@ -65,7 +70,15 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color.black.opacity(0.22)
         case .midnight: Color.white.opacity(0.35)
         case .coral: Color.black.opacity(0.25)
+        case .pixel: Color.gray.opacity(0.7)
         }
+    }
+
+    /// Whether this skin draws the board and pieces from the pixel-art
+    /// sprite pack (see ``PixelBoardView``) rather than flat colors and
+    /// Unicode glyphs.
+    var usesPixelArt: Bool {
+        self == .pixel
     }
 
     /// Tint for the square a check is occurring on.

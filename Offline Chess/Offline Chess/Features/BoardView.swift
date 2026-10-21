@@ -13,6 +13,14 @@ struct BoardView: View {
     let skin: BoardSkin
 
     var body: some View {
+        if skin.usesPixelArt {
+            PixelBoardView(game: game)
+        } else {
+            flatBoard
+        }
+    }
+
+    private var flatBoard: some View {
         GeometryReader { proxy in
             let boardSize = min(proxy.size.width, proxy.size.height)
             let cell = boardSize / 8
@@ -45,7 +53,7 @@ struct BoardView: View {
         ZStack {
             (square.color == .light ? skin.lightSquare : skin.darkSquare)
 
-            if isLastMoveSquare(square) {
+            if game.isLastMoveSquare(square) {
                 skin.lastMoveHighlight
             }
 
@@ -53,7 +61,7 @@ struct BoardView: View {
                 skin.selectionHighlight
             }
 
-            if isCheckedKingSquare(square) {
+            if game.isCheckedKingSquare(square) {
                 skin.checkHighlight
             }
 
@@ -80,23 +88,25 @@ struct BoardView: View {
         }
         .accessibilityLabel(squareAccessibilityLabel(square: square, piece: piece))
     }
+}
 
-    private func isLastMoveSquare(_ square: Square) -> Bool {
-        guard let lastMove = game.moveHistory.last else { return false }
+extension ChessGame {
+    func isLastMoveSquare(_ square: Square) -> Bool {
+        guard let lastMove = moveHistory.last else { return false }
         return lastMove.start == square || lastMove.end == square
     }
 
-    private func isCheckedKingSquare(_ square: Square) -> Bool {
-        guard game.isInCheck, let piece = game.piece(at: square) else { return false }
-        return piece.kind == .king && piece.color == game.sideToMove
+    func isCheckedKingSquare(_ square: Square) -> Bool {
+        guard isInCheck, let piece = self.piece(at: square) else { return false }
+        return piece.kind == .king && piece.color == sideToMove
     }
+}
 
-    private func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
-        if let piece {
-            return "\(square.notation), \(piece.color == .white ? "white" : "black") \(String(describing: piece.kind).lowercased())"
-        }
-        return square.notation
+func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
+    if let piece {
+        return "\(square.notation), \(piece.color == .white ? "white" : "black") \(String(describing: piece.kind).lowercased())"
     }
+    return square.notation
 }
 
 #Preview("Board - Opening") {
@@ -120,5 +130,14 @@ struct BoardView: View {
     let game = ChessGame(mode: .twoPlayer)
     game.makeMove(from: .d2, to: .d4)
     return BoardView(game: game, skin: .midnight)
+        .padding()
+}
+
+#Preview("Board - Pixel Skin") {
+    let game = ChessGame(mode: .twoPlayer)
+    game.makeMove(from: .e2, to: .e4)
+    game.makeMove(from: .e7, to: .e5)
+    game.select(.g1)
+    return BoardView(game: game, skin: .pixel)
         .padding()
 }
