@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Observation
 import StoreKit
 
 /// Drives the app's single one-time, non-consumable "unlock pro"

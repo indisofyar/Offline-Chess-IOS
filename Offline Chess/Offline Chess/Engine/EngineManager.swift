@@ -26,7 +26,7 @@ actor EngineManager {
 
         await engine.start()
 
-        while await !engine.isRunning {
+        while !(await engine.isRunning) {
             try? await Task.sleep(nanoseconds: 40_000_000)
         }
 

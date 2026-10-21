@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Observation
 import ChessKit
 
 /// A readable description of why & how a game ended.

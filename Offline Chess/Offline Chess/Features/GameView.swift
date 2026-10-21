@@ -40,12 +40,10 @@ struct GameView: View {
         .padding(.vertical)
         .navigationTitle(game.mode == .onePlayer ? "vs \(game.botDifficulty.displayName)" : "Pass & Play")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
+        .task(id: game.moveHistory.count) {
             if botPlayer == nil {
                 botPlayer = BotPlayer(engineManager: appState.engineManager)
             }
-        }
-        .task(id: game.moveHistory.count) {
             if game.isGameOver {
                 recordCompletedGame()
             } else {

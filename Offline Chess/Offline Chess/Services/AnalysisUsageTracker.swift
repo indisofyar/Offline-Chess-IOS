@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Observation
 
 /// Tracks how many post-game analyses a free user has run today.
 ///

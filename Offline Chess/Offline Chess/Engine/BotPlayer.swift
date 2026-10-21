@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Observation
 
 /// Picks moves on behalf of the bot side of a 1-player game, using
 /// ``EngineManager`` configured to the selected ``BotDifficulty``.

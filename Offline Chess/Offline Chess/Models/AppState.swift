@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Observation
 
 /// App-wide shared state: the engine, store and usage services, the
 /// user's chosen board skin / last difficulty, and the most recently

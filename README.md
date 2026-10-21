@@ -1,26 +1,32 @@
-# Restaurant Tracker
+# Offline Chess
 
-An iOS app (SwiftUI + SwiftData + MapKit) for keeping track of the restaurants you've visited and rating them out of five stars.
+An iOS app (SwiftUI) for playing chess and analyzing your games — fully on-device, no wifi required.
+
+*Chess and chess analysis without wifi.*
 
 ## Features
 
-- **Map** – every restaurant you've rated is pinned on a map, coloured by rating. Filter to 3★+, 4★+ or 5★ places, tap a pin for details.
-- **Visited list** – searchable list with quick stats (places visited, average rating, number of 5★ spots), sortable by most recent, highest rated or name. Swipe to delete.
-- **Add / edit** – search Apple Maps for the place, pick a cuisine, the date you went, a 1–5 star rating and notes.
-- **Detail** – change the rating in place, see the spot on a map and open it in Apple Maps for directions.
+- **1-player vs bot** – play Stockfish at six selectable strengths, from Beginner (~800) through Master (~2200), similar to chess.com's bot picker.
+- **2-player pass-and-play** – a full local two-player game on one device.
+- **Full legal chess rules** – check, checkmate, stalemate, draws (fifty-move, insufficient material, threefold repetition, stalemate), castling, en passant and promotion, powered by [ChessKit](https://github.com/chesskit-app/chesskit-swift).
+- **Post-game analysis** – a real on-device Stockfish engine ([ChessKitEngine](https://github.com/chesskit-app/chesskit-engine)) classifies every move (Brilliant/Best/Excellent/Good/Inaccuracy/Mistake/Blunder) and computes an overall accuracy percentage per side. Free users get one analysis per day; Premium is unlimited.
+- **Board skins** – several light/dark square palettes (Classic Green, Walnut, Ocean, Midnight, Coral), applied consistently across the board.
+- **One-time purchase** – a single non-consumable in-app purchase (`indi.OfflineChess.unlockPro`) removes the ad placeholder and unlocks unlimited analysis.
 
 ## Project layout
 
 ```
-Restaurant Tracker/
-  Restaurant Tracker.xcodeproj
-  Restaurant Tracker/
-    App/            App entry point & SwiftData container
-    Models/         Restaurant (SwiftData model), Cuisine
-    Features/       Map, list, detail and add/edit screens
-    Services/       Apple Maps place search
-    Shared/         Design system (star rating, pins, tiles) and preview sample data
-  Restaurant TrackerTests/
+Offline Chess/
+  Offline Chess.xcodeproj
+  Offline Chess/
+    App/            App entry point
+    Models/         ChessGame (wraps ChessKit's Board), BotDifficulty, BoardSkin, GameMode, AppState
+    Engine/         EngineManager (Stockfish UCI lifecycle), BotPlayer, AnalysisService
+    Services/       AnalysisUsageTracker, PurchaseManager (StoreKit 2), ad placeholder
+    Features/       Home, Game, Board, Difficulty/Skin pickers, Analysis, Paywall, Settings
+    Shared/         Design system (colors, reusable components)
+    Resources/      Stockfish NNUE network files
+  Offline ChessTests/
     SnapshotTests.swift
 snapshots/          Auto-generated screenshots of every #Preview (committed by CI)
 ```
@@ -29,7 +35,7 @@ snapshots/          Auto-generated screenshots of every #Preview (committed by C
 
 The [`Generate UI Snapshots`](.github/workflows/generate-snapshots.yml) workflow runs on every push to `main` (or manually from the Actions tab). It uses [SnapshotPreviews](https://github.com/getsentry/SnapshotPreviews) to render every `#Preview` in the app on an iPhone simulator and commits the PNGs to [`snapshots/`](snapshots).
 
-To get a new screen into the snapshots, just add a `#Preview` for it. Previews use `SampleData.makeContainer()` (an in-memory SwiftData store with fixed sample data) so the screenshots stay stable between runs.
+To get a new screen into the snapshots, just add a `#Preview` for it.
 
 ## Installing on your phone (TestFlight)
 
@@ -37,7 +43,7 @@ The [`Upload to TestFlight`](.github/workflows/testflight.yml) workflow builds a
 
 One-time setup:
 
-1. **App record** – in [App Store Connect](https://appstoreconnect.apple.com) go to *Apps → + → New App* and use bundle ID `indi.Restaurant-Tracker` (register it under *Certificates, Identifiers & Profiles → Identifiers* first if it isn't listed).
+1. **App record** – in [App Store Connect](https://appstoreconnect.apple.com) go to *Apps → + → New App* and use bundle ID `indi.OfflineChess` (register it under *Certificates, Identifiers & Profiles → Identifiers* first if it isn't listed).
 2. **API key** – *Users and Access → Integrations → App Store Connect API → Team Keys → +*, role **Admin** (needed for cloud-managed signing). Download the `.p8` file (it can only be downloaded once) and note the **Key ID** and **Issuer ID**.
 3. **GitHub secrets** – in the repo's *Settings → Secrets and variables → Actions*, add:
    - `ASC_KEY_ID` – the Key ID
@@ -45,5 +51,9 @@ One-time setup:
    - `ASC_KEY_P8` – the full contents of the `.p8` file, including the `BEGIN`/`END` lines
 
 To ship a build, run the workflow from the Actions tab (*Upload to TestFlight → Run workflow*). The build number is the workflow run number. After Apple finishes processing (usually 5–15 minutes) the build appears in the TestFlight app on any device signed in as a tester on the app — you're automatically an internal tester as the account owner.
+
+## In-app purchase setup
+
+Before the "unlock pro" purchase will resolve in the app, create a **non-consumable** in-app purchase in App Store Connect with product ID `indi.OfflineChess.unlockPro` (e.g. priced at £6). Until that product exists, `PaywallView` will show its "couldn't load the store item" state — the StoreKit 2 code itself is already wired up and will work as soon as the product is created.
 
 Requires Xcode 26 or later (iOS 18 deployment target).

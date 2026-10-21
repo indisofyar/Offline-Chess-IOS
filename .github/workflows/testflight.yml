@@ -7,8 +7,8 @@ jobs:
   testflight:
     runs-on: macos-15
     env:
-      PROJECT: Restaurant Tracker/Restaurant Tracker.xcodeproj
-      SCHEME: Restaurant Tracker
+      PROJECT: Offline Chess/Offline Chess.xcodeproj
+      SCHEME: Offline Chess
       TEAM_ID: 7U5S9FG4DC
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -45,7 +45,7 @@ jobs:
             -scheme "$SCHEME" \
             -configuration Release \
             -destination "generic/platform=iOS" \
-            -archivePath "$RUNNER_TEMP/RestaurantTracker.xcarchive" \
+            -archivePath "$RUNNER_TEMP/OfflineChess.xcarchive" \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
@@ -67,7 +67,7 @@ jobs:
           </plist>
           EOF
           xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/RestaurantTracker.xcarchive" \
+            -archivePath "$RUNNER_TEMP/OfflineChess.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export" \
             -allowProvisioningUpdates \
@@ -79,7 +79,7 @@ jobs:
       - name: Upload .ipa as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Restaurant-Tracker-build-${{ github.run_number }}
+          name: Offline-Chess-build-${{ github.run_number }}
           path: ${{ env.IPA_PATH }}
 
       - name: Upload to TestFlight

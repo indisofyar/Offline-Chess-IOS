@@ -44,8 +44,8 @@ jobs:
       - name: Resolve SPM packages
         run: |
           xcodebuild -resolvePackageDependencies \
-            -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
-            -scheme "Restaurant Tracker"
+            -project "Offline Chess/Offline Chess.xcodeproj" \
+            -scheme "Offline Chess"
 
       - name: Pick iOS simulator
         run: |
@@ -80,10 +80,10 @@ jobs:
           TEST_RUNNER_SNAPSHOTS_EXPORT_DIR="$GITHUB_WORKSPACE/snapshots" \
           TEST_RUNNER_SNAPSHOTS_RUNNING_FOR_PREVIEWS=1 \
           xcodebuild test \
-            -project "Restaurant Tracker/Restaurant Tracker.xcodeproj" \
-            -scheme "Restaurant Tracker" \
+            -project "Offline Chess/Offline Chess.xcodeproj" \
+            -scheme "Offline Chess" \
             -destination "platform=iOS Simulator,id=$SIM_ID" \
-            -only-testing "Restaurant TrackerTests/SnapshotTests" \
+            -only-testing "Offline ChessTests/SnapshotTests" \
             -resultBundlePath "$RUNNER_TEMP/SnapshotTests.xcresult" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
@@ -105,7 +105,7 @@ jobs:
       - name: Print crash reports
         if: failure()
         run: |
-          ls -t ~/Library/Logs/DiagnosticReports/ | grep Restaurant | head -3 | while IFS= read -r name; do
+          ls -t ~/Library/Logs/DiagnosticReports/ | grep -i "Offline" | head -3 | while IFS= read -r name; do
             f="$HOME/Library/Logs/DiagnosticReports/$name"
             echo "=== $f"
             python3 - "$f" <<'PY'
