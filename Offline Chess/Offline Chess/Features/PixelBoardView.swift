@@ -43,19 +43,30 @@ struct PixelBoardView: View {
                     .frame(width: Self.boardWidth * scale, height: Self.boardHeight * scale)
                     .offset(y: Self.headroom * scale)
 
-                ForEach(0..<64, id: \.self) { index in
-                    squareView(square: square(at: index), scale: scale)
+                // Each layer gets its own container so the layers' ForEach
+                // IDs (0..<64 in all three) don't collide as siblings.
+                ZStack(alignment: .topLeading) {
+                    ForEach(0..<64, id: \.self) { index in
+                        squareView(square: square(at: index), scale: scale)
+                    }
                 }
+                .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale, alignment: .topLeading)
 
                 // Back ranks first so nearer pieces overlap the ones behind.
-                ForEach(0..<64, id: \.self) { index in
-                    pieceView(square: square(at: index), scale: scale)
+                ZStack(alignment: .topLeading) {
+                    ForEach(0..<64, id: \.self) { index in
+                        pieceView(square: square(at: index), scale: scale)
+                    }
                 }
+                .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale, alignment: .topLeading)
                 .allowsHitTesting(false)
 
-                ForEach(0..<64, id: \.self) { index in
-                    legalMoveMarker(square: square(at: index), scale: scale)
+                ZStack(alignment: .topLeading) {
+                    ForEach(0..<64, id: \.self) { index in
+                        legalMoveMarker(square: square(at: index), scale: scale)
+                    }
                 }
+                .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale, alignment: .topLeading)
                 .allowsHitTesting(false)
             }
             .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale)
