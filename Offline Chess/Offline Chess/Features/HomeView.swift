@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import ChessKit
 
 /// The root screen: pick 1-player/2-player, see the difficulty picker
 /// for 1-player games, jump into last game's analysis, and reach
