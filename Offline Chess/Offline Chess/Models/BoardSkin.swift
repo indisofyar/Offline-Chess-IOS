@@ -16,6 +16,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case pixel
     case clubDeco
     case clubDecoGilded
+    case cartoon
 
     var id: String { rawValue }
 
@@ -29,6 +30,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel: "Pixel"
         case .clubDeco: "Club Deco"
         case .clubDecoGilded: "Club Deco Gilded"
+        case .cartoon: "Cartoon"
         }
     }
 
@@ -41,6 +43,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .coral: Color(red: 0.98, green: 0.92, blue: 0.86)
         case .pixel: Color.white
         case .clubDeco, .clubDecoGilded: Color(hex: 0xE8D3A9)
+        case .cartoon: Color(hex: 0xEAE9D2)
         }
     }
 
@@ -53,6 +56,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .coral: Color(red: 0.82, green: 0.45, blue: 0.40)
         case .pixel: Color(red: 0.145, green: 0.145, blue: 0.145)
         case .clubDeco, .clubDecoGilded: Color(hex: 0x9A6A3E)
+        case .cartoon: Color(hex: 0xB2A696)
         }
     }
 
@@ -66,6 +70,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .coral: Color.yellow.opacity(0.55)
         case .pixel: Color.yellow.opacity(0.55)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xC9A45C).opacity(0.55)
+        case .cartoon: Color.yellow.opacity(0.55)
         }
     }
 
@@ -81,6 +86,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         // that overhang the square from the rank in front.
         case .pixel: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
         case .clubDeco, .clubDecoGilded: Color.black.opacity(0.25)
+        case .cartoon: Color.black.opacity(0.25)
         }
     }
 
@@ -90,6 +96,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .clubDeco: "satin"
         case .clubDecoGilded: "gilded"
+        case .cartoon: "cartoon"
         default: nil
         }
     }

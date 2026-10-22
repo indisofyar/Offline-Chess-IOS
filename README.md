@@ -10,7 +10,7 @@ An iOS app (SwiftUI) for playing chess and analyzing your games — fully on-dev
 - **2-player pass-and-play** – a full local two-player game on one device.
 - **Full legal chess rules** – check, checkmate, stalemate, draws (fifty-move, insufficient material, threefold repetition, stalemate), castling, en passant and promotion, powered by [ChessKit](https://github.com/chesskit-app/chesskit-swift).
 - **Post-game analysis** – a real on-device Stockfish engine ([ChessKitEngine](https://github.com/chesskit-app/chesskit-engine)) classifies every move (Brilliant/Best/Excellent/Good/Inaccuracy/Mistake/Blunder) and computes an overall accuracy percentage per side. Free users get one analysis per day; Premium is unlimited.
-- **Board skins** – several light/dark square palettes (Classic Green, Walnut, Ocean, Midnight, Coral), plus a **Pixel** skin drawn from a pixel-art sprite pack (board and pieces), applied consistently across the board.
+- **Board skins** – several light/dark square palettes (Classic Green, Walnut, Ocean, Midnight, Coral), plus a **Pixel** skin drawn from a pixel-art sprite pack (board and pieces) and a **Cartoon** skin with image pieces by VerzatileDev, applied consistently across the board.
 - **One-time purchase** – a single non-consumable in-app purchase (`indi.OfflineChess.unlockPro`) removes the ad placeholder and unlocks unlimited analysis.
 
 ## Project layout
