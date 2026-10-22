@@ -6,7 +6,7 @@
 import SwiftUI
 import ChessKit
 
-/// Renders the ``BoardSkin/pixel`` skin from its sprite pack: a
+/// Renders the pixel skins (``BoardSkinFamily/pixel``) from their sprite pack: a
 /// slightly foreshortened board (48x40 sprite-pixel squares with a front
 /// lip) and upright piece sprites that stand on their square and overlap
 /// the square behind them.
@@ -15,12 +15,11 @@ import ChessKit
 /// fit, so the art stays aligned at any size.
 struct PixelBoardView: View {
     let game: ChessGame
+    var skin: BoardSkin = .pixel
 
     @State private var drag: PieceDrag?
 
-    private let skin = BoardSkin.pixel
-
-    // Measurements of the `PixelBoard` asset, in sprite pixels.
+    // Measurements of the `PixelBoard` assets, in sprite pixels.
     private static let boardWidth: CGFloat = 390
     private static let boardHeight: CGFloat = 346
     private static let gridOrigin = CGPoint(x: 3, y: 3)
@@ -39,7 +38,7 @@ struct PixelBoardView: View {
             let scale = min(proxy.size.width / Self.boardWidth, proxy.size.height / Self.totalHeight)
 
             ZStack(alignment: .topLeading) {
-                Image("PixelBoard")
+                Image(skin.pixelBoardImage)
                     .interpolation(.none)
                     .resizable()
                     .frame(width: Self.boardWidth * scale, height: Self.boardHeight * scale)
@@ -214,5 +213,10 @@ struct PixelBoardView: View {
 
 #Preview("Pixel Board - Opening") {
     PixelBoardView(game: ChessGame(mode: .twoPlayer))
+        .padding()
+}
+
+#Preview("Pixel Board - Retro") {
+    PixelBoardView(game: ChessGame(mode: .twoPlayer), skin: .pixelRetro)
         .padding()
 }

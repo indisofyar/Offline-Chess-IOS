@@ -37,6 +37,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case midnight
     case coral
     case pixel
+    case pixelRetro
     case clubDeco
     case clubDecoGilded
 
@@ -50,6 +51,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: "Midnight"
         case .coral: "Coral"
         case .pixel: "Pixel"
+        case .pixelRetro: "Pixel Retro"
         case .clubDeco: "Club Deco"
         case .clubDecoGilded: "Club Deco Gilded"
         }
@@ -59,7 +61,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     var family: BoardSkinFamily {
         switch self {
         case .classicGreen, .walnut, .ocean, .midnight, .coral: .classic
-        case .pixel: .pixel
+        case .pixel, .pixelRetro: .pixel
         case .clubDeco, .clubDecoGilded: .clubDeco
         }
     }
@@ -73,6 +75,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: "Midnight"
         case .coral: "Coral"
         case .pixel, .clubDeco: "Default"
+        case .pixelRetro: "Retro"
         case .clubDecoGilded: "Gilded"
         }
     }
@@ -85,6 +88,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: Color(red: 0.70, green: 0.72, blue: 0.78)
         case .coral: Color(red: 0.98, green: 0.92, blue: 0.86)
         case .pixel: Color.white
+        case .pixelRetro: Color(red: 224 / 255, green: 240 / 255, blue: 200 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xE8D3A9)
         }
     }
@@ -97,6 +101,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: Color(red: 0.24, green: 0.27, blue: 0.36)
         case .coral: Color(red: 0.82, green: 0.45, blue: 0.40)
         case .pixel: Color(red: 0.145, green: 0.145, blue: 0.145)
+        case .pixelRetro: Color(red: 30 / 255, green: 50 / 255, blue: 32 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0x9A6A3E)
         }
     }
@@ -109,7 +114,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color.white.opacity(0.55)
         case .midnight: Color.cyan.opacity(0.45)
         case .coral: Color.yellow.opacity(0.55)
-        case .pixel: Color.yellow.opacity(0.55)
+        case .pixel, .pixelRetro: Color.yellow.opacity(0.55)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xC9A45C).opacity(0.55)
         }
     }
@@ -124,7 +129,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .coral: Color.black.opacity(0.25)
         // Gold, not gray: markers often sit on the grayscale sprites
         // that overhang the square from the rank in front.
-        case .pixel: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
+        case .pixel, .pixelRetro: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
         case .clubDeco, .clubDecoGilded: Color.black.opacity(0.25)
         }
     }
@@ -152,7 +157,15 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     /// sprite pack (see ``PixelBoardView``) rather than flat colors and
     /// Unicode glyphs.
     var usesPixelArt: Bool {
-        self == .pixel
+        family == .pixel
+    }
+
+    /// Asset name of the board sprite for pixel-art skins.
+    var pixelBoardImage: String {
+        switch self {
+        case .pixelRetro: "PixelBoardRetro"
+        default: "PixelBoard"
+        }
     }
 
     /// Tint for the square a check is occurring on.
