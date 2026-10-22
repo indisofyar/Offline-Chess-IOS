@@ -5,7 +5,30 @@
 
 import SwiftUI
 
-/// A selectable board color palette, applied consistently across
+/// A board skin: how the board and pieces are drawn. Each skin comes in
+/// one or more colours, each of which is a ``BoardSkin``.
+enum BoardSkinFamily: String, CaseIterable, Identifiable {
+    case classic
+    case pixel
+    case clubDeco
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .classic: "Classic"
+        case .pixel: "Pixel"
+        case .clubDeco: "Club Deco"
+        }
+    }
+
+    /// The colours this skin comes in; the first is its default.
+    var colors: [BoardSkin] {
+        BoardSkin.allCases.filter { $0.family == self }
+    }
+}
+
+/// A selectable board skin colour, applied consistently across
 /// ``BoardView`` wherever a board is rendered.
 enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case classicGreen
@@ -29,6 +52,28 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel: "Pixel"
         case .clubDeco: "Club Deco"
         case .clubDecoGilded: "Club Deco Gilded"
+        }
+    }
+
+    /// The skin this colour belongs to.
+    var family: BoardSkinFamily {
+        switch self {
+        case .classicGreen, .walnut, .ocean, .midnight, .coral: .classic
+        case .pixel: .pixel
+        case .clubDeco, .clubDecoGilded: .clubDeco
+        }
+    }
+
+    /// Name of this colour within its skin.
+    var colorName: String {
+        switch self {
+        case .classicGreen: "Green"
+        case .walnut: "Walnut"
+        case .ocean: "Ocean"
+        case .midnight: "Midnight"
+        case .coral: "Coral"
+        case .pixel, .clubDeco: "Default"
+        case .clubDecoGilded: "Gilded"
         }
     }
 

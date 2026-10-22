@@ -219,6 +219,7 @@ struct DifficultyRow: View {
 struct SkinSwatchView: View {
     let skin: BoardSkin
     let isSelected: Bool
+    var title: String?
 
     var body: some View {
         VStack(spacing: 8) {
@@ -245,7 +246,7 @@ struct SkinSwatchView: View {
                         .strokeBorder(isSelected ? Color.chessAccent : .clear, lineWidth: 3)
                 }
 
-            Text(skin.displayName)
+            Text(title ?? skin.displayName)
                 .font(.caption)
                 .fontWeight(isSelected ? .bold : .regular)
                 .foregroundStyle(isSelected ? Color.chessAccent : .secondary)

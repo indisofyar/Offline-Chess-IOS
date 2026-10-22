@@ -18,7 +18,18 @@ struct SettingsView: View {
                     HStack {
                         Text("Board Skin")
                         Spacer()
-                        Text(appState.boardSkin.displayName)
+                        Text(appState.boardSkin.family.displayName)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                NavigationLink {
+                    SkinColorPickerView()
+                } label: {
+                    HStack {
+                        Text("Board Colour")
+                        Spacer()
+                        Text(appState.boardSkin.colorName)
                             .foregroundStyle(.secondary)
                     }
                 }
