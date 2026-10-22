@@ -19,6 +19,8 @@ struct GameConfig: Hashable, Identifiable {
     let mode: GameMode
     var humanColor: Piece.Color = .white
     var difficulty: BotDifficulty = .intermediate
+    /// Moves (LAN) to replay before play begins, when resuming a saved game.
+    var resumeMoves: [String] = []
 
     static func == (lhs: GameConfig, rhs: GameConfig) -> Bool {
         lhs.id == rhs.id
@@ -26,5 +28,17 @@ struct GameConfig: Hashable, Identifiable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+}
+
+extension GameConfig {
+    /// A config that resumes `saved` where it left off.
+    init(resuming saved: SavedBotGame) {
+        self.init(
+            mode: .onePlayer,
+            humanColor: saved.humanColor,
+            difficulty: saved.difficulty,
+            resumeMoves: saved.lanMoves
+        )
     }
 }

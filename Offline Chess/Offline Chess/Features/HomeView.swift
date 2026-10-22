@@ -7,7 +7,8 @@ import SwiftUI
 import ChessKit
 
 /// The root screen: pick 1-player/2-player, see the difficulty picker
-/// for 1-player games, jump into last game's analysis, and reach
+/// for 1-player games, continue an unfinished bot game, jump into last
+/// game's analysis, and reach
 /// settings/skins/the paywall.
 struct HomeView: View {
     @Environment(AppState.self) private var appState
@@ -24,6 +25,17 @@ struct HomeView: View {
                     header
 
                     VStack(spacing: 12) {
+                        if let saved = appState.savedBotGame {
+                            MenuCardButton(
+                                icon: "play.fill",
+                                title: "Continue Game",
+                                subtitle: "vs \(saved.difficulty.displayName) · move \(saved.fullMoveCount)",
+                                tint: .green
+                            ) {
+                                activeGameConfig = GameConfig(resuming: saved)
+                            }
+                        }
+
                         MenuCardButton(
                             icon: "cpu",
                             title: "Play vs Bot",
@@ -117,6 +129,18 @@ struct HomeView: View {
 #Preview("Home") {
     HomeView()
         .environment(AppState())
+}
+
+#Preview("Home - With Saved Bot Game") {
+    let state = AppState()
+    state.savedBotGame = SavedBotGame(
+        lanMoves: ["e2e4", "e7e5", "g1f3"],
+        humanPlaysWhite: true,
+        difficulty: .advanced,
+        date: Date()
+    )
+    return HomeView()
+        .environment(state)
 }
 
 #Preview("Home - With Last Game") {

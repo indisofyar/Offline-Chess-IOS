@@ -8,7 +8,8 @@ import Observation
 
 /// App-wide shared state: the engine, store and usage services, the
 /// user's chosen board skin / last difficulty, and the most recently
-/// completed game (for the "Analyze last game" flow).
+/// completed game (for the "Analyze last game" flow), and any unfinished
+/// bot game (for the "Continue Game" flow).
 @MainActor
 @Observable
 final class AppState {
@@ -20,10 +21,14 @@ final class AppState {
     private(set) var boardSkin: BoardSkin
     private(set) var lastDifficulty: BotDifficulty
     var lastCompletedGame: CompletedGameRecord?
+    /// Set via ``saveBotGame(_:)`` / ``clearSavedBotGame()`` to persist;
+    /// assign directly only for in-memory use (e.g. previews).
+    var savedBotGame: SavedBotGame?
 
     private let defaults = UserDefaults.standard
     private let skinKey = "settings.boardSkin"
     private let difficultyKey = "settings.difficulty"
+    private let savedBotGameKey = "game.savedBotGame"
 
     init() {
         if let raw = UserDefaults.standard.string(forKey: "settings.boardSkin"),
@@ -39,6 +44,10 @@ final class AppState {
         } else {
             lastDifficulty = .intermediate
         }
+
+        if let data = UserDefaults.standard.data(forKey: "game.savedBotGame") {
+            savedBotGame = try? JSONDecoder().decode(SavedBotGame.self, from: data)
+        }
     }
 
     func updateBoardSkin(_ skin: BoardSkin) {
@@ -49,5 +58,18 @@ final class AppState {
     func updateLastDifficulty(_ difficulty: BotDifficulty) {
         lastDifficulty = difficulty
         defaults.set(difficulty.rawValue, forKey: difficultyKey)
+    }
+
+    /// Persists an unfinished bot game so it can be resumed later.
+    func saveBotGame(_ game: SavedBotGame) {
+        savedBotGame = game
+        if let data = try? JSONEncoder().encode(game) {
+            defaults.set(data, forKey: savedBotGameKey)
+        }
+    }
+
+    func clearSavedBotGame() {
+        savedBotGame = nil
+        defaults.removeObject(forKey: savedBotGameKey)
     }
 }
