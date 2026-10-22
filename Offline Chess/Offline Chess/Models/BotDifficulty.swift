@@ -13,11 +13,17 @@ import Foundation
 /// than we want) plus a search time budget so weaker bots also
 /// "think" for a shorter, more human amount of time.
 enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
+    case novice
     case beginner
+    case casual
     case easy
+    case club
     case intermediate
+    case skilled
     case advanced
+    case strong
     case expert
+    case candidateMaster
     case master
 
     var id: String { rawValue }
@@ -25,22 +31,34 @@ enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
     /// Approximate real-world rating this bot targets.
     var targetRating: Int {
         switch self {
-        case .beginner: 800
-        case .easy: 1000
-        case .intermediate: 1300
-        case .advanced: 1600
-        case .expert: 1900
+        case .novice: 500
+        case .beginner: 650
+        case .casual: 800
+        case .easy: 950
+        case .club: 1100
+        case .intermediate: 1250
+        case .skilled: 1400
+        case .advanced: 1550
+        case .strong: 1700
+        case .expert: 1850
+        case .candidateMaster: 2000
         case .master: 2200
         }
     }
 
     var displayName: String {
         switch self {
+        case .novice: "Novice"
         case .beginner: "Beginner"
+        case .casual: "Casual"
         case .easy: "Easy"
+        case .club: "Club"
         case .intermediate: "Intermediate"
+        case .skilled: "Skilled"
         case .advanced: "Advanced"
+        case .strong: "Strong"
         case .expert: "Expert"
+        case .candidateMaster: "Candidate Master"
         case .master: "Master"
         }
     }
@@ -51,11 +69,17 @@ enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
 
     var icon: String {
         switch self {
+        case .novice: "leaf.fill"
         case .beginner: "tortoise.fill"
-        case .easy: "figure.walk"
+        case .casual: "figure.walk"
+        case .easy: "hare.fill"
+        case .club: "person.2.fill"
         case .intermediate: "figure.run"
+        case .skilled: "star.fill"
         case .advanced: "bolt.fill"
+        case .strong: "dumbbell.fill"
         case .expert: "flame.fill"
+        case .candidateMaster: "medal.fill"
         case .master: "crown.fill"
         }
     }
@@ -71,8 +95,12 @@ enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
     /// weakest bots.
     var skillLevel: Int {
         switch self {
+        case .novice: 0
         case .beginner: 1
+        case .casual: 2
         case .easy: 3
+        case .club: 5
+        case .intermediate: 7
         default: 20
         }
     }
@@ -88,11 +116,17 @@ enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
     /// and stronger bots take a bit longer to "look deeper".
     var moveTimeMillis: Int {
         switch self {
+        case .novice: 200
         case .beginner: 250
+        case .casual: 300
         case .easy: 350
-        case .intermediate: 500
-        case .advanced: 700
-        case .expert: 1000
+        case .club: 400
+        case .intermediate: 450
+        case .skilled: 550
+        case .advanced: 650
+        case .strong: 750
+        case .expert: 900
+        case .candidateMaster: 1150
         case .master: 1500
         }
     }
