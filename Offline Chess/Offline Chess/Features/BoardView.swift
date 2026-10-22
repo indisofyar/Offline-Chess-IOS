@@ -26,7 +26,9 @@ struct BoardView: View {
     private var flatBoard: some View {
         GeometryReader { proxy in
             let boardSize = min(proxy.size.width, proxy.size.height)
-            let cell = boardSize / 8
+            let inset = skin.frame?.inset ?? 0
+            let cell = (boardSize - inset * 2) / 8
+            let cornerRadius: CGFloat = skin.frame == nil ? 10 : 0
 
             VStack(spacing: 0) {
                 ForEach((1...8).reversed(), id: \.self) { rankValue in
@@ -37,25 +39,57 @@ struct BoardView: View {
                     }
                 }
             }
-            .frame(width: boardSize, height: boardSize)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .frame(width: cell * 8, height: cell * 8)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.black.opacity(0.15), lineWidth: 1)
+                if skin.frame == nil {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(Color.black.opacity(0.15), lineWidth: 1)
+                }
+            }
+            .padding(inset)
+            .background {
+                if let frame = skin.frame {
+                    frameView(frame)
+                }
             }
             // Outside the clip so a dragged piece can leave the board's edge.
             .overlay(alignment: .topLeading) {
                 if let drag, drag.isDragging, let piece = game.piece(at: drag.start) {
-                    PieceGlyphView(piece: piece, size: cell * 0.74 * 1.3)
+                    PieceGlyphView(piece: piece, size: cell * pieceScale * 1.3, skin: skin)
                         .position(drag.location)
                         .allowsHitTesting(false)
                 }
             }
             .contentShape(Rectangle())
-            .gesture(pieceDragGesture(game: game, drag: $drag) { square(at: $0, cell: cell) })
+            .gesture(pieceDragGesture(game: game, drag: $drag) {
+                square(at: CGPoint(x: $0.x - inset, y: $0.y - inset), cell: cell)
+            })
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(1, contentMode: .fit)
+    }
+
+    /// Piece size as a fraction of the square. Image piece sets include
+    /// their own padding, so they're drawn larger than glyphs.
+    private var pieceScale: CGFloat {
+        skin.pieceSet == nil ? 0.74 : 0.94
+    }
+
+    /// The wooden border, with a rule outside it and another just inside
+    /// it, against the grid.
+    private func frameView(_ frame: BoardFrame) -> some View {
+        Rectangle()
+            .fill(frame.color)
+            .overlay {
+                Rectangle()
+                    .strokeBorder(frame.rule, lineWidth: frame.outerRuleWidth)
+            }
+            .overlay {
+                Rectangle()
+                    .strokeBorder(frame.rule, lineWidth: frame.innerRuleWidth)
+                    .padding(frame.inset - frame.innerRuleWidth)
+            }
     }
 
     private func square(at location: CGPoint, cell: CGFloat) -> Square? {
@@ -74,7 +108,7 @@ struct BoardView: View {
             (square.color == .light ? skin.lightSquare : skin.darkSquare)
 
             if game.isLastMoveSquare(square) {
-                skin.lastMoveHighlight
+                skin.lastMoveHighlight(onLightSquare: square.color == .light)
             }
 
             if game.selectedSquare == square {
@@ -86,7 +120,7 @@ struct BoardView: View {
             }
 
             if let piece, !(drag?.isDragging == true && drag?.start == square) {
-                PieceGlyphView(piece: piece, size: size * 0.74)
+                PieceGlyphView(piece: piece, size: size * pieceScale, skin: skin)
             }
 
             if isLegalDestination {
@@ -219,5 +253,24 @@ func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
     game.makeMove(from: .b8, to: .c6)
     game.select(.f3)
     return BoardView(game: game, skin: .pixel)
+        .padding()
+}
+
+#Preview("Board - Club Deco") {
+    let game = ChessGame(mode: .twoPlayer)
+    game.makeMove(from: .e2, to: .e4)
+    game.makeMove(from: .e7, to: .e5)
+    game.makeMove(from: .g1, to: .f3)
+    game.makeMove(from: .b8, to: .c6)
+    game.select(.f3)
+    return BoardView(game: game, skin: .clubDeco)
+        .padding()
+}
+
+#Preview("Board - Club Deco Gilded") {
+    let game = ChessGame(mode: .twoPlayer)
+    game.makeMove(from: .d2, to: .d4)
+    game.makeMove(from: .g8, to: .f6)
+    return BoardView(game: game, skin: .clubDecoGilded)
         .padding()
 }

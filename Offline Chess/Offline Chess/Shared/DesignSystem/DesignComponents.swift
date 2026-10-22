@@ -27,8 +27,9 @@ func pieceGlyph(for piece: Piece) -> String {
     }
 }
 
-/// Draws a single piece: the skin's sprite for pixel-art skins,
-/// otherwise its Unicode glyph.
+/// Draws a single piece: the skin's sprite for pixel-art skins, its
+/// piece image for skins with an image piece set, otherwise its Unicode
+/// glyph.
 struct PieceGlyphView: View {
     let piece: Piece
     var size: CGFloat = 36
@@ -42,6 +43,12 @@ struct PieceGlyphView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: size, height: size)
+            } else if let pieceSet = skin?.pieceSet {
+                Image("\(pieceSet)/\(pieceAssetCode(for: piece))")
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: size, height: size)
             } else {
                 Text(pieceGlyph(for: piece))
                     .font(.system(size: size))
@@ -53,6 +60,21 @@ struct PieceGlyphView: View {
         }
         .accessibilityLabel("\(piece.color == .white ? "White" : "Black") \(String(describing: piece.kind))")
     }
+}
+
+/// FEN-style asset code for a piece image: `w`/`b` then the uppercase
+/// piece letter, e.g. `wK`, `bN`.
+func pieceAssetCode(for piece: Piece) -> String {
+    let side = piece.color == .white ? "w" : "b"
+    let letter = switch piece.kind {
+    case .king: "K"
+    case .queen: "Q"
+    case .rook: "R"
+    case .bishop: "B"
+    case .knight: "N"
+    case .pawn: "P"
+    }
+    return side + letter
 }
 
 // MARK: - Section Header
@@ -209,6 +231,12 @@ struct SkinSwatchView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(height: 56)
+                    } else if let pieceSet = skin.pieceSet {
+                        Image("\(pieceSet)/wN")
+                            .resizable()
+                            .interpolation(.high)
+                            .scaledToFit()
+                            .frame(height: 56)
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -267,6 +295,7 @@ struct JudgmentBadge: View {
                 SkinSwatchView(skin: .walnut, isSelected: false)
                 SkinSwatchView(skin: .midnight, isSelected: false)
                 SkinSwatchView(skin: .pixel, isSelected: false)
+                SkinSwatchView(skin: .clubDecoGilded, isSelected: false)
             }
             HStack {
                 ForEach([Piece.Kind.queen, .rook, .bishop, .knight], id: \.self) { kind in

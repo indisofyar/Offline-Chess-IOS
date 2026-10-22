@@ -14,6 +14,8 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case midnight
     case coral
     case pixel
+    case clubDeco
+    case clubDecoGilded
 
     var id: String { rawValue }
 
@@ -25,6 +27,8 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: "Midnight"
         case .coral: "Coral"
         case .pixel: "Pixel"
+        case .clubDeco: "Club Deco"
+        case .clubDecoGilded: "Club Deco Gilded"
         }
     }
 
@@ -36,6 +40,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: Color(red: 0.70, green: 0.72, blue: 0.78)
         case .coral: Color(red: 0.98, green: 0.92, blue: 0.86)
         case .pixel: Color.white
+        case .clubDeco, .clubDecoGilded: Color(hex: 0xE8D3A9)
         }
     }
 
@@ -47,6 +52,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: Color(red: 0.24, green: 0.27, blue: 0.36)
         case .coral: Color(red: 0.82, green: 0.45, blue: 0.40)
         case .pixel: Color(red: 0.145, green: 0.145, blue: 0.145)
+        case .clubDeco, .clubDecoGilded: Color(hex: 0x9A6A3E)
         }
     }
 
@@ -59,6 +65,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .midnight: Color.cyan.opacity(0.45)
         case .coral: Color.yellow.opacity(0.55)
         case .pixel: Color.yellow.opacity(0.55)
+        case .clubDeco, .clubDecoGilded: Color(hex: 0xC9A45C).opacity(0.55)
         }
     }
 
@@ -73,6 +80,26 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         // Gold, not gray: markers often sit on the grayscale sprites
         // that overhang the square from the rank in front.
         case .pixel: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
+        case .clubDeco, .clubDecoGilded: Color.black.opacity(0.25)
+        }
+    }
+
+    /// Asset catalog namespace of the image piece set this skin draws
+    /// (e.g. `satin/wK`), or `nil` to draw Unicode glyphs.
+    var pieceSet: String? {
+        switch self {
+        case .clubDeco: "satin"
+        case .clubDecoGilded: "gilded"
+        default: nil
+        }
+    }
+
+    /// Wooden frame drawn around the board, if the skin has one.
+    var frame: BoardFrame? {
+        switch self {
+        case .clubDeco, .clubDecoGilded:
+            BoardFrame(color: Color(hex: 0x4A2F1B), width: 9, rule: Color(hex: 0xC9A45C))
+        default: nil
         }
     }
 
@@ -95,4 +122,26 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         default: Color.blue.opacity(0.25)
         }
     }
+
+    /// Fill for a last-move square of the given color. Club Deco swaps the
+    /// square to an opaque brass tone; other skins tint it.
+    func lastMoveHighlight(onLightSquare isLight: Bool) -> Color {
+        switch self {
+        case .clubDeco, .clubDecoGilded: Color(hex: isLight ? 0xE3C277 : 0xB98B3F)
+        default: lastMoveHighlight
+        }
+    }
+}
+
+/// A board frame: a wooden border with a thin rule just outside it and
+/// another just inside it.
+struct BoardFrame {
+    let color: Color
+    let width: CGFloat
+    let rule: Color
+    var outerRuleWidth: CGFloat = 1.5
+    var innerRuleWidth: CGFloat = 1
+
+    /// Total distance from the outer edge to the playing grid.
+    var inset: CGFloat { outerRuleWidth + width }
 }
