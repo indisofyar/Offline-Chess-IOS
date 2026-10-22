@@ -54,10 +54,6 @@ struct HomeView: View {
                         .opacity(appState.lastCompletedGame == nil ? 0.5 : 1)
                         .disabled(appState.lastCompletedGame == nil)
                     }
-
-                    if !appState.purchaseManager.isPremium {
-                        BannerAdPlaceholderView()
-                    }
                 }
                 .padding()
             }

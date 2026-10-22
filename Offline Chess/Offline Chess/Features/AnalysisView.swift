@@ -49,10 +49,6 @@ struct AnalysisView: View {
                 } else {
                     lockedCard
                 }
-
-                if !isPremium {
-                    BannerAdPlaceholderView()
-                }
             }
             .padding()
         }
