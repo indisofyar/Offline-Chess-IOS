@@ -13,6 +13,8 @@ struct DifficultyPickerView: View {
 
     @Environment(\.dismiss) private var dismiss
 
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+
     init(initialDifficulty: BotDifficulty, onStart: @escaping (BotDifficulty) -> Void) {
         _selected = State(initialValue: initialDifficulty)
         self.onStart = onStart
@@ -28,13 +30,15 @@ struct DifficultyPickerView: View {
                     )
                     .padding(.bottom, 4)
 
-                    ForEach(BotDifficulty.allCases) { difficulty in
-                        Button {
-                            selected = difficulty
-                        } label: {
-                            DifficultyRow(difficulty: difficulty, isSelected: selected == difficulty)
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(BotDifficulty.allCases) { difficulty in
+                            Button {
+                                selected = difficulty
+                            } label: {
+                                DifficultyTile(difficulty: difficulty, isSelected: selected == difficulty)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding()
