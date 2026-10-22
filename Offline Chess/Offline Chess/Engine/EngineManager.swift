@@ -79,8 +79,13 @@ actor EngineManager {
         isBusy = false
     }
 
+    /// Search threads used for post-game analysis. Bot moves always
+    /// search on one thread so bot strength doesn't vary by device.
+    private static let analysisThreads = max(min(ProcessInfo.processInfo.activeProcessorCount - 1, 3), 1)
+
     /// Configures Stockfish's playing strength for the given difficulty.
     private func configureStrength(for difficulty: BotDifficulty) async {
+        await engine.send(command: .setoption(id: "Threads", value: "1"))
         if difficulty.usesSkillLevel {
             await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
             await engine.send(command: .setoption(id: "Skill Level", value: "\(difficulty.skillLevel)"))
@@ -125,7 +130,12 @@ actor EngineManager {
         await acquireTurn()
         defer { releaseTurn() }
 
+        await engine.send(command: .setoption(id: "Threads", value: "\(Self.analysisThreads)"))
+        // Undo any bot weakening: `Skill Level` stays set after a
+        // Beginner/Easy game and would make Stockfish pick weaker
+        // "best" moves (and search 4 lines instead of 1).
         await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
+        await engine.send(command: .setoption(id: "Skill Level", value: "20"))
         await engine.send(command: .position(.startpos, moves: moves))
         await engine.send(command: .go(depth: depth))
 
