@@ -17,7 +17,7 @@ struct BoardView: View {
 
     var body: some View {
         if skin.usesPixelArt {
-            PixelBoardView(game: game)
+            PixelBoardView(game: game, skin: skin)
         } else {
             flatBoard
         }
