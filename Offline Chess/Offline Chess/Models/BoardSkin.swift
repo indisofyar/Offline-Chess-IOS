@@ -11,6 +11,7 @@ enum BoardSkinFamily: String, CaseIterable, Identifiable {
     case classic
     case pixel
     case clubDeco
+    case cartoon
 
     var id: String { rawValue }
 
@@ -19,6 +20,7 @@ enum BoardSkinFamily: String, CaseIterable, Identifiable {
         case .classic: "Classic"
         case .pixel: "Pixel"
         case .clubDeco: "Club Deco"
+        case .cartoon: "Cartoon"
         }
     }
 
@@ -65,6 +67,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .classicGreen, .walnut, .ocean, .midnight, .coral: .classic
         case .pixel, .pixelRetro: .pixel
         case .clubDeco, .clubDecoGilded: .clubDeco
+        case .cartoon: .cartoon
         }
     }
 
@@ -76,7 +79,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: "Ocean"
         case .midnight: "Midnight"
         case .coral: "Coral"
-        case .pixel, .clubDeco: "Default"
+        case .pixel, .clubDeco, .cartoon: "Default"
         case .pixelRetro: "Retro"
         case .clubDecoGilded: "Gilded"
         }
