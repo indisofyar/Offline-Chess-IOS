@@ -9,6 +9,10 @@ import ChessKit
 /// Plays the board sound effects. Players are preloaded so each sound
 /// starts instantly, and the `.ambient` session category respects the
 /// silent switch and mixes with any music already playing.
+///
+/// Session activation blocks, and `AVAudioPlayer.play()` activates the
+/// session implicitly, so all audio work runs on a private serial queue
+/// instead of the main thread.
 @MainActor
 final class SoundPlayer {
 
@@ -25,17 +29,10 @@ final class SoundPlayer {
         case castle = "castle"
     }
 
-    private var players: [Effect: AVAudioPlayer] = [:]
+    private let engine = Engine()
 
     private init() {
-        try? AVAudioSession.sharedInstance().setCategory(.ambient)
-
-        for effect in Effect.allCases {
-            guard let url = Bundle.main.url(forResource: effect.rawValue, withExtension: "wav"),
-                  let player = try? AVAudioPlayer(contentsOf: url) else { continue }
-            player.prepareToPlay()
-            players[effect] = player
-        }
+        engine.setUp()
     }
 
     private var isEnabled: Bool {
@@ -43,9 +40,8 @@ final class SoundPlayer {
     }
 
     func play(_ effect: Effect) {
-        guard isEnabled, let player = players[effect] else { return }
-        player.currentTime = 0
-        player.play()
+        guard isEnabled else { return }
+        engine.play(effect)
     }
 
     /// Plays the sound that matches `move`: castling, a capture or a
@@ -60,6 +56,40 @@ final class SoundPlayer {
             play(isWhite ? .captureWhite : .captureBlack)
         case .move:
             play(isWhite ? .moveWhite : .moveBlack)
+        }
+    }
+}
+
+extension SoundPlayer {
+
+    /// Owns the session and the players. `players` is only touched on
+    /// `queue`, which is what makes the `@unchecked Sendable` safe.
+    private nonisolated final class Engine: @unchecked Sendable {
+
+        private let queue = DispatchQueue(label: "SoundPlayer.audio", qos: .userInitiated)
+        private var players: [Effect: AVAudioPlayer] = [:]
+
+        func setUp() {
+            queue.async { [self] in
+                let session = AVAudioSession.sharedInstance()
+                try? session.setCategory(.ambient)
+                try? session.setActive(true)
+
+                for effect in Effect.allCases {
+                    guard let url = Bundle.main.url(forResource: effect.rawValue, withExtension: "wav"),
+                          let player = try? AVAudioPlayer(contentsOf: url) else { continue }
+                    player.prepareToPlay()
+                    players[effect] = player
+                }
+            }
+        }
+
+        func play(_ effect: Effect) {
+            queue.async { [self] in
+                guard let player = players[effect] else { return }
+                player.currentTime = 0
+                player.play()
+            }
         }
     }
 }

@@ -238,7 +238,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "indi.OfflineChessTests";
+				PRODUCT_BUNDLE_IDENTIFIER = indi.OfflineChessTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -261,7 +261,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "indi.OfflineChessTests";
+				PRODUCT_BUNDLE_IDENTIFIER = indi.OfflineChessTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -422,7 +422,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "indi.OfflineChess";
+				PRODUCT_BUNDLE_IDENTIFIER = indi.OfflineChess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -463,7 +463,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "indi.OfflineChess";
+				PRODUCT_BUNDLE_IDENTIFIER = indi.OfflineChess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -518,14 +518,6 @@
 				kind = branch;
 			};
 		};
-		C826A6FCE48478DCB74F2134 /* XCRemoteSwiftPackageReference "chesskit-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/chesskit-app/chesskit-swift";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 		73C8EB5BB682575EC87A171A /* XCRemoteSwiftPackageReference "chesskit-engine" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/chesskit-app/chesskit-engine";
@@ -534,9 +526,27 @@
 				kind = branch;
 			};
 		};
+		C826A6FCE48478DCB74F2134 /* XCRemoteSwiftPackageReference "chesskit-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/chesskit-app/chesskit-swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4F7FD633DBDDE131CA3766E4 /* ChessKitEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73C8EB5BB682575EC87A171A /* XCRemoteSwiftPackageReference "chesskit-engine" */;
+			productName = ChessKitEngine;
+		};
+		50AF03B971722F244F58D669 /* ChessKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C826A6FCE48478DCB74F2134 /* XCRemoteSwiftPackageReference "chesskit-swift" */;
+			productName = ChessKit;
+		};
 		5E7A212B2FCDF53200236EFC /* PreviewGallery */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5E7A212A2FCDF53200236EFC /* XCRemoteSwiftPackageReference "SnapshotPreviews" */;
@@ -546,16 +556,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5E7A212A2FCDF53200236EFC /* XCRemoteSwiftPackageReference "SnapshotPreviews" */;
 			productName = SnapshottingTests;
-		};
-		50AF03B971722F244F58D669 /* ChessKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C826A6FCE48478DCB74F2134 /* XCRemoteSwiftPackageReference "chesskit-swift" */;
-			productName = ChessKit;
-		};
-		4F7FD633DBDDE131CA3766E4 /* ChessKitEngine */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 73C8EB5BB682575EC87A171A /* XCRemoteSwiftPackageReference "chesskit-engine" */;
-			productName = ChessKitEngine;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
