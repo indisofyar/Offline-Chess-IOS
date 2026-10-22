@@ -186,7 +186,7 @@ final class ChessGame {
         if case let .promotion(pendingMove) = board.state {
             pendingPromotion = pendingMove
         } else {
-            moveHistory.append(move)
+            record(move)
         }
 
         return true
@@ -196,7 +196,7 @@ final class ChessGame {
     func completePromotion(to kind: Piece.Kind) {
         guard let move = pendingPromotion else { return }
         let completed = board.completePromotion(of: move, to: kind)
-        moveHistory.append(completed)
+        record(completed)
         pendingPromotion = nil
     }
 
@@ -215,12 +215,18 @@ final class ChessGame {
         if case let .promotion(pendingMove) = board.state {
             let kind = parsed.promotedPiece?.kind ?? .queen
             let completed = board.completePromotion(of: pendingMove, to: kind)
-            moveHistory.append(completed)
+            record(completed)
         } else {
-            moveHistory.append(move)
+            record(move)
         }
 
         return true
+    }
+
+    /// Adds a finished move to the history and plays its sound.
+    private func record(_ move: Move) {
+        moveHistory.append(move)
+        SoundPlayer.shared.play(for: move)
     }
 
     func resign(as color: Piece.Color) {

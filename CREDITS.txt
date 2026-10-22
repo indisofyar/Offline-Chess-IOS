@@ -1,3 +1,7 @@
 Cartoon skin chess pieces and board colors:
 Assets by VerzatileDev, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 https://verzatiledev.itch.io
+
+Sound effects (piece move, piece impact, paper flip):
+Tabletop Games SFX Pack by JDSherbert.
+https://jdsherbert.itch.io

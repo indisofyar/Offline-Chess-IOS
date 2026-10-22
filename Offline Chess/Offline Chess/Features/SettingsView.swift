@@ -8,6 +8,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
+    @AppStorage(SoundPlayer.enabledKey) private var soundEnabled = true
 
     var body: some View {
         List {
@@ -33,6 +34,8 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                Toggle("Sound Effects", isOn: $soundEnabled)
             }
 
             Section("Premium") {
@@ -63,6 +66,9 @@ struct SettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Text("Cartoon pieces by VerzatileDev, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Text("Sound effects from the Tabletop Games SFX Pack by JDSherbert.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
