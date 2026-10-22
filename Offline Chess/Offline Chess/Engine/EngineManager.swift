@@ -25,6 +25,20 @@ actor EngineManager {
     /// for Stockfish's `EvalFile` and `EvalFileSmall` options.
     private static let networkNames = ["nn-1111cefa1111", "nn-37f18f62d772"]
 
+    /// `setoption` commands pointing Stockfish at the bundled networks.
+    ///
+    /// ``ChessKitEngine`` sends these itself, but builds the paths with
+    /// `URL.path()`, which percent-encodes them. The app bundle is
+    /// `Offline Chess.app`, so Stockfish gets `Offline%20Chess.app/...`,
+    /// can't open the file, and calls `exit()` on the first `go`. These
+    /// use the plain path and are sent before every search; Stockfish
+    /// skips reloading a network whose path hasn't changed.
+    private static let networkCommands: [EngineCommand] = zip(["EvalFile", "EvalFileSmall"], networkNames)
+        .compactMap { option, name -> EngineCommand? in
+            guard let url = Bundle.main.url(forResource: name, withExtension: "nnue") else { return nil }
+            return .setoption(id: option, value: url.path(percentEncoded: false))
+        }
+
     /// Whether the engine can be used. `false` if a bundled NNUE network
     /// is missing or corrupt, in which case every request returns `nil`.
     var isAvailable: Bool {
@@ -61,6 +75,10 @@ actor EngineManager {
         while !(await engine.isRunning) {
             try? await Task.sleep(nanoseconds: 40_000_000)
         }
+
+        // Give ChessKitEngine time to send its own (broken) network
+        // paths, so ours always reach Stockfish after them.
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         hasStarted = true
         return true
@@ -104,6 +122,9 @@ actor EngineManager {
         defer { releaseTurn() }
 
         await configureStrength(for: difficulty)
+        for command in Self.networkCommands {
+            await engine.send(command: command)
+        }
         await engine.send(command: .position(.startpos, moves: moves))
         await engine.send(command: .go(movetime: difficulty.moveTimeMillis))
 
@@ -136,6 +157,9 @@ actor EngineManager {
         // "best" moves (and search 4 lines instead of 1).
         await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
         await engine.send(command: .setoption(id: "Skill Level", value: "20"))
+        for command in Self.networkCommands {
+            await engine.send(command: command)
+        }
         await engine.send(command: .position(.startpos, moves: moves))
         await engine.send(command: .go(depth: depth))
 
