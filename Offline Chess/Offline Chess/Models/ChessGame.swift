@@ -152,6 +152,27 @@ final class ChessGame {
         }
     }
 
+    /// Starts dragging the piece on `square`: selects it (without the
+    /// tap-again-to-deselect toggle) so its legal destinations show.
+    /// Returns `false` if there's no piece here that can move.
+    @discardableResult
+    func pickUp(_ square: Square) -> Bool {
+        guard !isGameOver, pendingPromotion == nil,
+              let piece = board.position.piece(at: square), piece.color == sideToMove else { return false }
+
+        selectedSquare = square
+        legalDestinations = board.legalMoves(forPieceAt: square)
+        return true
+    }
+
+    /// Finishes a drag that started on `start`. Moves the piece if it was
+    /// dropped on a legal destination; otherwise it snaps back and stays
+    /// selected so the move can still be finished with a tap.
+    func drop(from start: Square, on end: Square?) {
+        guard selectedSquare == start, let end, end != start, legalDestinations.contains(end) else { return }
+        makeMove(from: start, to: end)
+    }
+
     /// Attempts to move the piece at `start` to `end`. If this triggers
     /// a pawn promotion, ``pendingPromotion`` is set so the UI can
     /// prompt for a piece and later call ``completePromotion(to:)``.

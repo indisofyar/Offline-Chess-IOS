@@ -6,11 +6,14 @@
 import SwiftUI
 import ChessKit
 
-/// Renders an 8x8 chess board using the selected ``BoardSkin``, with a
-/// tap-to-select-then-tap-to-move interaction.
+/// Renders an 8x8 chess board using the selected ``BoardSkin``. Pieces
+/// move either by tapping the piece then its destination, or by
+/// dragging the piece onto its destination.
 struct BoardView: View {
     let game: ChessGame
     let skin: BoardSkin
+
+    @State private var drag: PieceDrag?
 
     var body: some View {
         if skin.usesPixelArt {
@@ -35,14 +38,31 @@ struct BoardView: View {
                 }
             }
             .frame(width: boardSize, height: boardSize)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.black.opacity(0.15), lineWidth: 1)
+            }
+            // Outside the clip so a dragged piece can leave the board's edge.
+            .overlay(alignment: .topLeading) {
+                if let drag, drag.isDragging, let piece = game.piece(at: drag.start) {
+                    PieceGlyphView(piece: piece, size: cell * 0.74 * 1.3)
+                        .position(drag.location)
+                        .allowsHitTesting(false)
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(pieceDragGesture(game: game, drag: $drag) { square(at: $0, cell: cell) })
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(Color.black.opacity(0.15), lineWidth: 1)
-        }
+    }
+
+    private func square(at location: CGPoint, cell: CGFloat) -> Square? {
+        let column = Int((location.x / cell).rounded(.down))
+        let row = Int((location.y / cell).rounded(.down))
+        guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
+        return Square(Square.File.allCases[column], Square.Rank(8 - row))
     }
 
     @ViewBuilder
@@ -65,7 +85,7 @@ struct BoardView: View {
                 skin.checkHighlight
             }
 
-            if let piece {
+            if let piece, !(drag?.isDragging == true && drag?.start == square) {
                 PieceGlyphView(piece: piece, size: size * 0.74)
             }
 
@@ -82,12 +102,61 @@ struct BoardView: View {
             }
         }
         .frame(width: size, height: size)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            game.select(square)
-        }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(squareAccessibilityLabel(square: square, piece: piece))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { game.select(square) }
     }
+}
+
+/// An in-progress touch on the board that may become a piece drag.
+struct PieceDrag {
+    /// The square the touch started on.
+    let start: Square
+    /// Current touch location, in the board's coordinate space.
+    var location: CGPoint
+    /// Whether the touch has moved far enough to stop counting as a tap.
+    var hasMoved = false
+    /// Whether the piece on ``start`` was picked up and follows the touch.
+    var isDragging = false
+}
+
+/// Handles both taps and drags on a board. A touch that barely moves is
+/// a tap (``ChessGame/select(_:)``); one that moves picks up the piece
+/// it started on and drops it wherever the touch ends.
+///
+/// One board-wide gesture rather than per-square tap gestures, so taps
+/// and drags can't both fire for the same touch.
+func pieceDragGesture(
+    game: ChessGame,
+    drag: Binding<PieceDrag?>,
+    square: @escaping (CGPoint) -> Square?
+) -> some Gesture {
+    DragGesture(minimumDistance: 0)
+        .onChanged { value in
+            if drag.wrappedValue == nil {
+                guard let start = square(value.startLocation) else { return }
+                drag.wrappedValue = PieceDrag(start: start, location: value.startLocation)
+            }
+            guard var current = drag.wrappedValue else { return }
+
+            current.location = value.location
+            if !current.hasMoved, hypot(value.translation.width, value.translation.height) > 8 {
+                current.hasMoved = true
+                current.isDragging = game.pickUp(current.start)
+            }
+            drag.wrappedValue = current
+        }
+        .onEnded { value in
+            defer { drag.wrappedValue = nil }
+            guard let current = drag.wrappedValue else { return }
+
+            if !current.hasMoved {
+                game.select(current.start)
+            } else if current.isDragging {
+                game.drop(from: current.start, on: square(value.location))
+            }
+        }
 }
 
 extension ChessGame {

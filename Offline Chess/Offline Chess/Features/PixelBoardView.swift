@@ -16,6 +16,8 @@ import ChessKit
 struct PixelBoardView: View {
     let game: ChessGame
 
+    @State private var drag: PieceDrag?
+
     private let skin = BoardSkin.pixel
 
     // Measurements of the `PixelBoard` asset, in sprite pixels.
@@ -68,8 +70,12 @@ struct PixelBoardView: View {
                 }
                 .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale, alignment: .topLeading)
                 .allowsHitTesting(false)
+
+                draggedPiece(scale: scale)
             }
             .frame(width: Self.boardWidth * scale, height: Self.totalHeight * scale)
+            .contentShape(Rectangle())
+            .gesture(pieceDragGesture(game: game, drag: $drag) { square(at: $0, scale: scale) })
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(Self.boardWidth / Self.totalHeight, contentMode: .fit)
@@ -80,6 +86,16 @@ struct PixelBoardView: View {
     private func square(at index: Int) -> Square {
         let file = Square.File.allCases[index % 8]
         return Square(file, Square.Rank(8 - index / 8))
+    }
+
+    /// The square under `location` (in view points), if any.
+    private func square(at location: CGPoint, scale: CGFloat) -> Square? {
+        let x = location.x / scale - Self.gridOrigin.x
+        let y = location.y / scale - Self.headroom - Self.gridOrigin.y
+        let column = Int((x / Self.cellWidth).rounded(.down))
+        let row = Int((y / Self.cellHeight).rounded(.down))
+        guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
+        return Square(Square.File.allCases[column], Square.Rank(8 - row))
     }
 
     /// Top-left corner of a square, in sprite pixels from the view's origin.
@@ -112,17 +128,16 @@ struct PixelBoardView: View {
             }
         }
         .frame(width: Self.cellWidth * scale, height: Self.cellHeight * scale)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            game.select(square)
-        }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(squareAccessibilityLabel(square: square, piece: piece))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { game.select(square) }
         .offset(x: topLeft.x * scale, y: topLeft.y * scale)
     }
 
     @ViewBuilder
     private func pieceView(square: Square, scale: CGFloat) -> some View {
-        if let piece = game.piece(at: square) {
+        if let piece = game.piece(at: square), !(drag?.isDragging == true && drag?.start == square) {
             let topLeft = origin(of: square)
             let height = Self.spriteHeight(for: piece.kind)
             let squareBottom = topLeft.y + Self.cellHeight
@@ -132,6 +147,22 @@ struct PixelBoardView: View {
                 .resizable()
                 .frame(width: Self.cellWidth * scale, height: height * scale)
                 .offset(x: topLeft.x * scale, y: (squareBottom - Self.pieceBaseInset - height) * scale)
+        }
+    }
+
+    /// The piece being dragged, standing with its base just below the
+    /// touch so the finger doesn't cover it.
+    @ViewBuilder
+    private func draggedPiece(scale: CGFloat) -> some View {
+        if let drag, drag.isDragging, let piece = game.piece(at: drag.start) {
+            let height = Self.spriteHeight(for: piece.kind)
+
+            Image(Self.spriteName(for: piece))
+                .interpolation(.none)
+                .resizable()
+                .frame(width: Self.cellWidth * scale, height: height * scale)
+                .position(x: drag.location.x, y: drag.location.y + (Self.cellHeight / 2 - height / 2) * scale)
+                .allowsHitTesting(false)
         }
     }
 
