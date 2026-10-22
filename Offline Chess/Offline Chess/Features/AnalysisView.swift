@@ -108,7 +108,7 @@ struct AnalysisView: View {
             Text("You've used today's free analysis.")
                 .font(.headline)
 
-            Text("Come back tomorrow, or go Premium for unlimited analyses and no ads.")
+            Text("Come back tomorrow, or go Premium for unlimited analyses.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

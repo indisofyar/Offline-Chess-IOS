@@ -24,7 +24,6 @@ struct PaywallView: View {
                         .font(.title2.bold())
 
                     VStack(alignment: .leading, spacing: 14) {
-                        FeatureRow(icon: "rectangle.slash", text: "No ads, ever")
                         FeatureRow(icon: "infinity", text: "Unlimited post-game analysis")
                         FeatureRow(icon: "checkmark.seal.fill", text: "One-time purchase, yours for life")
                     }
