@@ -152,12 +152,3 @@ func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
     return BoardView(game: game, skin: .pixel)
         .padding()
 }
-
-#Preview("Board - DEBUG Flat g1") {
-    let game = ChessGame(mode: .twoPlayer)
-    game.makeMove(from: .e2, to: .e4)
-    game.makeMove(from: .e7, to: .e5)
-    game.select(.g1)
-    return BoardView(game: game, skin: .walnut)
-        .padding()
-}

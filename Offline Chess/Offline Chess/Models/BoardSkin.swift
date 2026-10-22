@@ -70,7 +70,9 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color.black.opacity(0.22)
         case .midnight: Color.white.opacity(0.35)
         case .coral: Color.black.opacity(0.25)
-        case .pixel: Color.gray.opacity(0.7)
+        // Gold, not gray: markers often sit on the grayscale sprites
+        // that overhang the square from the rank in front.
+        case .pixel: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
         }
     }
 
