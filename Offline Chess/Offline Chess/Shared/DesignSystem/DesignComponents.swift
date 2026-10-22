@@ -214,6 +214,54 @@ struct DifficultyRow: View {
     }
 }
 
+// MARK: - Difficulty Tile
+
+/// Compact, vertically stacked version of ``DifficultyRow`` for grid
+/// layouts.
+struct DifficultyTile: View {
+    let difficulty: BotDifficulty
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(Color.chessAccent.opacity(isSelected ? 1 : 0.15))
+                    .frame(width: 42, height: 42)
+                Image(systemName: difficulty.icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(isSelected ? .white : Color.chessAccent)
+            }
+
+            VStack(spacing: 2) {
+                Text(difficulty.displayName)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text(difficulty.subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 8)
+        .background(Color.appControlBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(isSelected ? Color.chessAccent : .clear, lineWidth: 2)
+        }
+        .overlay(alignment: .topTrailing) {
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color.chessAccent)
+                    .padding(8)
+            }
+        }
+    }
+}
+
 // MARK: - Skin Swatch
 
 struct SkinSwatchView: View {
