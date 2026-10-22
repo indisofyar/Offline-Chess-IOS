@@ -92,7 +92,11 @@ struct GameView: View {
 
             Spacer()
 
-            if botPlayer?.isThinking == true {
+            if botPlayer?.isEngineUnavailable == true {
+                Label("Bot engine unavailable", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            } else if botPlayer?.isThinking == true {
                 ProgressView()
                     .scaleEffect(0.8)
                 Text("Thinking…")

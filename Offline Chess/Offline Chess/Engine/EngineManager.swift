@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import CryptoKit
 import ChessKitEngine
 
 /// Owns a single Stockfish ``Engine`` instance and serializes access to
@@ -18,11 +19,42 @@ actor EngineManager {
     private let engine = Engine(type: .stockfish)
     private var hasStarted = false
     private var isBusy = false
+    private var networksValid: Bool?
+
+    /// The NNUE networks ``ChessKitEngine`` loads from the main bundle
+    /// for Stockfish's `EvalFile` and `EvalFileSmall` options.
+    private static let networkNames = ["nn-1111cefa1111", "nn-37f18f62d772"]
+
+    /// Whether the engine can be used. `false` if a bundled NNUE network
+    /// is missing or corrupt, in which case every request returns `nil`.
+    var isAvailable: Bool {
+        if let networksValid { return networksValid }
+        let valid = Self.networkNames.allSatisfy(Self.isValidNetwork(named:))
+        networksValid = valid
+        return valid
+    }
+
+    /// Stockfish names each network `nn-<first 12 hex chars of its
+    /// SHA-256>`, so a file whose hash doesn't match its name is the
+    /// wrong network (or a Git LFS pointer) and must not be loaded:
+    /// Stockfish calls `exit()` on the first `go` if a network fails
+    /// to load, which kills the whole app.
+    private static func isValidNetwork(named name: String) -> Bool {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "nnue"),
+            let data = try? Data(contentsOf: url, options: .mappedIfSafe)
+        else { return false }
+
+        let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        return name == "nn-\(hash.prefix(12))"
+    }
 
     /// Starts the engine (if needed) and waits until it has finished
     /// its internal UCI handshake and is ready to accept commands.
-    private func ensureStarted() async {
-        guard !hasStarted else { return }
+    ///
+    /// - returns: `false` if the engine is unavailable.
+    private func ensureStarted() async -> Bool {
+        guard isAvailable else { return false }
+        guard !hasStarted else { return true }
 
         await engine.start()
 
@@ -31,6 +63,7 @@ actor EngineManager {
         }
 
         hasStarted = true
+        return true
     }
 
     /// Simple cooperative lock so bot-move requests and analysis
@@ -61,7 +94,7 @@ actor EngineManager {
     /// `"e7e8q"`) for the position reached by playing `moves` from the
     /// starting position, using the given bot `difficulty`.
     func bestMove(movesFromStart moves: [String], difficulty: BotDifficulty) async -> String? {
-        await ensureStarted()
+        guard await ensureStarted() else { return nil }
         await acquireTurn()
         defer { releaseTurn() }
 
@@ -88,7 +121,7 @@ actor EngineManager {
     /// a large centipawn-equivalent value), along with the engine's
     /// best move from that position.
     func evaluate(movesFromStart moves: [String], depth: Int) async -> (centipawns: Double, bestMove: String?) {
-        await ensureStarted()
+        guard await ensureStarted() else { return (0, nil) }
         await acquireTurn()
         defer { releaseTurn() }
 

@@ -18,6 +18,10 @@ final class BotPlayer {
     /// Drive a small activity indicator in ``GameView`` with this.
     private(set) var isThinking = false
 
+    /// Set once the engine turns out to be unusable (e.g. a missing or
+    /// corrupt NNUE network), so the bot will never move.
+    private(set) var isEngineUnavailable = false
+
     init(engineManager: EngineManager) {
         self.engineManager = engineManager
     }
@@ -30,6 +34,10 @@ final class BotPlayer {
     func chooseMove(movesFromStart moves: [String], difficulty: BotDifficulty) async -> String? {
         isThinking = true
         defer { isThinking = false }
-        return await engineManager.bestMove(movesFromStart: moves, difficulty: difficulty)
+        let move = await engineManager.bestMove(movesFromStart: moves, difficulty: difficulty)
+        if move == nil, !(await engineManager.isAvailable) {
+            isEngineUnavailable = true
+        }
+        return move
     }
 }
