@@ -46,7 +46,7 @@ struct SettingsView: View {
                     Button {
                         showPaywall = true
                     } label: {
-                        Label("Remove ads & unlock analysis", systemImage: "crown.fill")
+                        Label("Unlock unlimited analysis", systemImage: "crown.fill")
                     }
 
                     Button("Restore Purchases") {
