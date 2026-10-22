@@ -24,7 +24,8 @@ struct GameView: View {
             initialValue: ChessGame(
                 mode: config.mode,
                 humanColor: config.humanColor,
-                botDifficulty: config.difficulty
+                botDifficulty: config.difficulty,
+                replaying: config.resumeMoves
             )
         )
     }
@@ -47,6 +48,7 @@ struct GameView: View {
             if game.isGameOver {
                 recordCompletedGame()
             } else {
+                saveInProgressGame()
                 await maybeMakeBotMove()
             }
         }
@@ -203,8 +205,26 @@ struct GameView: View {
         }
     }
 
+    /// Saves an unfinished bot game so it can be resumed from the home
+    /// screen. Nothing is saved until the first move is played, so just
+    /// opening a new game doesn't overwrite a previously saved one.
+    private func saveInProgressGame() {
+        guard game.mode == .onePlayer, !game.isGameOver, !game.moveHistory.isEmpty else { return }
+        appState.saveBotGame(
+            SavedBotGame(
+                lanMoves: game.lanMoves,
+                humanPlaysWhite: game.humanColor == .white,
+                difficulty: game.botDifficulty,
+                date: Date()
+            )
+        )
+    }
+
     private func recordCompletedGame() {
         guard let result = game.result else { return }
+        if game.mode == .onePlayer {
+            appState.clearSavedBotGame()
+        }
         appState.lastCompletedGame = CompletedGameRecord(
             moves: game.moveHistory,
             resultDescription: result.description,

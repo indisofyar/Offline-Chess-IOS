@@ -77,10 +77,19 @@ final class ChessGame {
     let humanColor: Piece.Color
     let botDifficulty: BotDifficulty
 
-    init(mode: GameMode, humanColor: Piece.Color = .white, botDifficulty: BotDifficulty = .intermediate) {
+    init(
+        mode: GameMode,
+        humanColor: Piece.Color = .white,
+        botDifficulty: BotDifficulty = .intermediate,
+        replaying lanMoves: [String] = []
+    ) {
         self.mode = mode
         self.humanColor = humanColor
         self.botDifficulty = botDifficulty
+
+        for lan in lanMoves {
+            guard applyEngineMove(lan: lan, playSound: false) else { break }
+        }
     }
 
     // MARK: Derived state
@@ -201,9 +210,10 @@ final class ChessGame {
     }
 
     /// Applies a move chosen by the bot, given in engine LAN form
-    /// (e.g. `"e2e4"`, or `"e7e8q"` for a promotion).
+    /// (e.g. `"e2e4"`, or `"e7e8q"` for a promotion). Also used to
+    /// silently replay a saved game's moves.
     @discardableResult
-    func applyEngineMove(lan: String) -> Bool {
+    func applyEngineMove(lan: String, playSound: Bool = true) -> Bool {
         guard let parsed = EngineLANParser.parse(move: lan, for: sideToMove, in: board.position) else {
             return false
         }
@@ -215,18 +225,20 @@ final class ChessGame {
         if case let .promotion(pendingMove) = board.state {
             let kind = parsed.promotedPiece?.kind ?? .queen
             let completed = board.completePromotion(of: pendingMove, to: kind)
-            record(completed)
+            record(completed, playSound: playSound)
         } else {
-            record(move)
+            record(move, playSound: playSound)
         }
 
         return true
     }
 
     /// Adds a finished move to the history and plays its sound.
-    private func record(_ move: Move) {
+    private func record(_ move: Move, playSound: Bool = true) {
         moveHistory.append(move)
-        SoundPlayer.shared.play(for: move)
+        if playSound {
+            SoundPlayer.shared.play(for: move)
+        }
     }
 
     func resign(as color: Piece.Color) {
