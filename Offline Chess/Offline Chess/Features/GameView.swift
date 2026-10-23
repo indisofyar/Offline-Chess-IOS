@@ -200,7 +200,9 @@ struct GameView: View {
             let botPlayer
         else { return }
 
-        if let lan = await botPlayer.chooseMove(movesFromStart: game.lanMoves, difficulty: game.botDifficulty) {
+        if let lan = await botPlayer.chooseMove(movesFromStart: game.lanMoves, difficulty: game.botDifficulty),
+            !Task.isCancelled
+        {
             game.applyEngineMove(lan: lan)
         }
     }

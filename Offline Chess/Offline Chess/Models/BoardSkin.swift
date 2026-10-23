@@ -12,6 +12,7 @@ enum BoardSkinFamily: String, CaseIterable, Identifiable {
     case pixel
     case clubDeco
     case cartoon
+    case geometric
 
     var id: String { rawValue }
 
@@ -21,6 +22,7 @@ enum BoardSkinFamily: String, CaseIterable, Identifiable {
         case .pixel: "Pixel"
         case .clubDeco: "Club Deco"
         case .cartoon: "Cartoon"
+        case .geometric: "Geometric"
         }
     }
 
@@ -43,6 +45,9 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     case clubDeco
     case clubDecoGilded
     case cartoon
+    case geometric
+    case geometricCocoa
+    case geometricStone
 
     var id: String { rawValue }
 
@@ -58,6 +63,9 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .clubDeco: "Club Deco"
         case .clubDecoGilded: "Club Deco Gilded"
         case .cartoon: "Cartoon"
+        case .geometric: "Geometric"
+        case .geometricCocoa: "Geometric Cocoa"
+        case .geometricStone: "Geometric Stone"
         }
     }
 
@@ -68,6 +76,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel, .pixelRetro: .pixel
         case .clubDeco, .clubDecoGilded: .clubDeco
         case .cartoon: .cartoon
+        case .geometric, .geometricCocoa, .geometricStone: .geometric
         }
     }
 
@@ -79,9 +88,11 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: "Ocean"
         case .midnight: "Midnight"
         case .coral: "Coral"
-        case .pixel, .clubDeco, .cartoon: "Default"
+        case .pixel, .clubDeco, .cartoon, .geometric: "Default"
         case .pixelRetro: "Retro"
         case .clubDecoGilded: "Gilded"
+        case .geometricCocoa: "Cocoa"
+        case .geometricStone: "Stone"
         }
     }
 
@@ -96,6 +107,9 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixelRetro: Color(red: 224 / 255, green: 240 / 255, blue: 200 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xE8D3A9)
         case .cartoon: Color(hex: 0xEAE9D2)
+        case .geometric: Color(hex: 0xE4BF94)
+        case .geometricCocoa: Color(hex: 0xDDB088)
+        case .geometricStone: Color(hex: 0xCAA184)
         }
     }
 
@@ -110,6 +124,9 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixelRetro: Color(red: 30 / 255, green: 50 / 255, blue: 32 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0x9A6A3E)
         case .cartoon: Color(hex: 0xB2A696)
+        case .geometric: Color(hex: 0x74472B)
+        case .geometricCocoa: Color(hex: 0x5E4234)
+        case .geometricStone: Color(hex: 0x6C5D57)
         }
     }
 
@@ -124,6 +141,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel, .pixelRetro: Color.yellow.opacity(0.55)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xC9A45C).opacity(0.55)
         case .cartoon: Color.yellow.opacity(0.55)
+        case .geometric, .geometricCocoa, .geometricStone: Color(hex: 0xCF6B43).opacity(0.55)
         }
     }
 
@@ -140,6 +158,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel, .pixelRetro: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
         case .clubDeco, .clubDecoGilded: Color.black.opacity(0.25)
         case .cartoon: Color.black.opacity(0.25)
+        case .geometric, .geometricCocoa, .geometricStone: Color.black.opacity(0.25)
         }
     }
 
@@ -150,6 +169,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .clubDeco: "satin"
         case .clubDecoGilded: "gilded"
         case .cartoon: "cartoon"
+        case .geometric, .geometricCocoa, .geometricStone: "geometric"
         default: nil
         }
     }

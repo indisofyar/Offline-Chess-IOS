@@ -285,3 +285,14 @@ func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
     return BoardView(game: game, skin: .cartoon)
         .padding()
 }
+
+#Preview("Board - Geometric") {
+    let game = ChessGame(mode: .twoPlayer)
+    game.makeMove(from: .e2, to: .e4)
+    game.makeMove(from: .e7, to: .e5)
+    game.makeMove(from: .g1, to: .f3)
+    game.makeMove(from: .b8, to: .c6)
+    game.select(.f3)
+    return BoardView(game: game, skin: .geometric)
+        .padding()
+}

@@ -104,7 +104,9 @@ final class PurchaseManager {
         var unlocked = false
 
         for await result in Transaction.currentEntitlements {
-            if case let .verified(transaction) = result, transaction.productID == Self.unlockProductID {
+            if case let .verified(transaction) = result,
+               transaction.productID == Self.unlockProductID,
+               transaction.revocationDate == nil {
                 unlocked = true
             }
         }
@@ -116,11 +118,14 @@ final class PurchaseManager {
         for await update in Transaction.updates {
             guard case let .verified(transaction) = update else { continue }
 
-            if transaction.productID == Self.unlockProductID {
-                isPremium = true
-            }
-
             await transaction.finish()
+
+            // Updates also arrive for refunds and revocations (with
+            // `revocationDate` set), so recompute from current
+            // entitlements rather than assuming every update unlocks.
+            if transaction.productID == Self.unlockProductID {
+                await refreshEntitlements()
+            }
         }
     }
 }
