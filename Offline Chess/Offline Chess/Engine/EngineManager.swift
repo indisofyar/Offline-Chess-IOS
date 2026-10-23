@@ -104,13 +104,9 @@ actor EngineManager {
     /// Configures Stockfish's playing strength for the given difficulty.
     private func configureStrength(for difficulty: BotDifficulty) async {
         await engine.send(command: .setoption(id: "Threads", value: "1"))
-        if difficulty.usesSkillLevel {
-            await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
-            await engine.send(command: .setoption(id: "Skill Level", value: "\(difficulty.skillLevel)"))
-        } else {
-            await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "true"))
-            await engine.send(command: .setoption(id: "UCI_Elo", value: "\(difficulty.uciElo)"))
-        }
+        await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
+        await engine.send(command: .setoption(id: "Skill Level", value: "\(difficulty.skillLevel)"))
+        await engine.send(command: .setoption(id: "MultiPV", value: "\(difficulty.multiPV)"))
     }
 
     /// Returns the engine's best move (in LAN form, e.g. `"e2e4"` or
@@ -130,9 +126,25 @@ actor EngineManager {
 
         guard let stream = await engine.responseStream else { return nil }
 
+        // First move of each MultiPV line, keyed by line number, so the
+        // latest depth's candidates replace earlier ones.
+        var candidates: [Int: String] = [:]
+
         for await response in stream {
-            if case let .bestmove(move, _) = response {
+            switch response {
+            case let .info(info):
+                if let line = info.multipv, let move = info.pv?.first {
+                    candidates[line] = move
+                }
+            case let .bestmove(move, _):
+                if Double.random(in: 0..<1) < difficulty.carelessMoveChance,
+                    let careless = candidates.values.randomElement()
+                {
+                    return careless
+                }
                 return move
+            default:
+                break
             }
         }
 
@@ -152,11 +164,12 @@ actor EngineManager {
         defer { releaseTurn() }
 
         await engine.send(command: .setoption(id: "Threads", value: "\(Self.analysisThreads)"))
-        // Undo any bot weakening: `Skill Level` stays set after a
-        // Beginner/Easy game and would make Stockfish pick weaker
-        // "best" moves (and search 4 lines instead of 1).
+        // Undo any bot weakening: `Skill Level` and `MultiPV` stay set
+        // after a bot game and would make Stockfish pick weaker "best"
+        // moves and report scores from the wrong line.
         await engine.send(command: .setoption(id: "UCI_LimitStrength", value: "false"))
         await engine.send(command: .setoption(id: "Skill Level", value: "20"))
+        await engine.send(command: .setoption(id: "MultiPV", value: "1"))
         for command in Self.networkCommands {
             await engine.send(command: command)
         }

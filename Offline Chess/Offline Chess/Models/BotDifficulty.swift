@@ -7,11 +7,10 @@ import Foundation
 
 /// A selectable bot strength, similar to chess.com's bot picker.
 ///
-/// Each difficulty maps to a combination of Stockfish UCI options
-/// (`UCI_LimitStrength` + `UCI_Elo`, or `Skill Level` for the very
-/// weakest bots where Stockfish's Elo limiter has a higher floor
-/// than we want) plus a search time budget so weaker bots also
-/// "think" for a shorter, more human amount of time.
+/// Each difficulty maps to a Stockfish `Skill Level` and `MultiPV`,
+/// a chance of playing a random candidate move (for the weakest bots),
+/// and a search time budget so weaker bots also "think" for a shorter,
+/// more human amount of time.
 enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
     case novice
     case beginner
@@ -84,31 +83,54 @@ enum BotDifficulty: String, CaseIterable, Identifiable, Codable {
         }
     }
 
-    /// Stockfish's `UCI_Elo` option only goes down to about 1320, so
-    /// below that we clamp `Skill Level` (0-20) instead and leave
-    /// `UCI_LimitStrength` off.
-    var usesSkillLevel: Bool {
-        targetRating < 1320
-    }
-
-    /// Value for the `Skill Level` UCI option (0-20), used for the
-    /// weakest bots.
+    /// Value for Stockfish's `Skill Level` UCI option (0-20).
+    ///
+    /// Every bot uses `Skill Level` directly rather than `UCI_Elo`:
+    /// Stockfish just converts `UCI_Elo` into a fractional skill level
+    /// on a curve that puts even 2200 at about level 5, which made the
+    /// Elo-limited bots weaker than Intermediate. Measured by self-play
+    /// against a full-strength judge: average centipawn loss per move
+    /// drops steadily from about 140 (Novice) to about 14 (Master).
     var skillLevel: Int {
         switch self {
-        case .novice: 0
-        case .beginner: 1
-        case .casual: 2
-        case .easy: 3
-        case .club: 5
-        case .intermediate: 7
-        default: 20
+        case .novice, .beginner, .casual: 0
+        case .easy: 1
+        case .club: 3
+        case .intermediate: 5
+        case .skilled: 7
+        case .advanced: 9
+        case .strong: 11
+        case .expert: 13
+        case .candidateMaster: 16
+        case .master: 19
         }
     }
 
-    /// Value for the `UCI_Elo` UCI option, clamped to Stockfish's
-    /// supported 1320-3190 range.
-    var uciElo: Int {
-        min(max(targetRating, 1320), 3190)
+    /// Value for the `MultiPV` UCI option. A weak `Skill Level` picks
+    /// its move from this many candidate lines (Stockfish uses at least
+    /// 4), so more lines means more chances to choose a poor move.
+    var multiPV: Int {
+        switch self {
+        case .novice: 20
+        case .beginner: 14
+        case .casual: 12
+        case .easy: 6
+        default: 1
+        }
+    }
+
+    /// Chance (0-1) that the bot ignores Stockfish's pick and plays a
+    /// random one of its candidate moves instead. Even `Skill Level` 0
+    /// rarely hangs pieces, so this supplies the outright blunders a
+    /// ~500-800 player makes.
+    var carelessMoveChance: Double {
+        switch self {
+        case .novice: 0.45
+        case .beginner: 0.35
+        case .casual: 0.20
+        case .easy: 0.03
+        default: 0
+        }
     }
 
     /// How long (in milliseconds) the bot is allowed to think before
