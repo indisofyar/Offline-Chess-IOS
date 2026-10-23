@@ -19,6 +19,10 @@ struct AnalysisView: View {
     @State private var isAnalyzing = false
     @State private var analysisProgress: Double = 0
     @State private var showPaywall = false
+    /// The position shown on the board: 0 is the start, `n` is after ply `n`.
+    @State private var selectedPly = 0
+    /// Replayed games for each position, built once results are available.
+    @State private var positions: [ChessGame] = []
 
     init(record: CompletedGameRecord, previewResult: AnalysisResult? = nil) {
         self.record = record
@@ -29,14 +33,60 @@ struct AnalysisView: View {
     private var canAnalyze: Bool { appState.usageTracker.canUseAnalysis(isPremium: isPremium) }
 
     var body: some View {
+        Group {
+            if let result = analysisResult {
+                resultsLayout(result)
+            } else {
+                preAnalysisLayout
+            }
+        }
+        .navigationTitle("Analysis")
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+    }
+
+    /// Board pinned at the top, with the summary and move list scrolling
+    /// underneath it and following whichever move the board is showing.
+    private func resultsLayout(_ result: AnalysisResult) -> some View {
+        VStack(spacing: 0) {
+            if !positions.isEmpty {
+                AnalysisBoardView(
+                    positions: positions,
+                    moves: result.moves,
+                    skin: appState.boardSkin,
+                    ply: $selectedPly
+                )
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+
+            Divider()
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 20) {
+                        summaryHeader
+                        accuracySummary(result)
+                        moveBreakdown(result)
+                    }
+                    .padding()
+                }
+                .onChange(of: selectedPly) { _, ply in
+                    withAnimation { proxy.scrollTo(ply, anchor: .center) }
+                }
+            }
+        }
+        .onAppear(perform: buildPositionsIfNeeded)
+    }
+
+    private var preAnalysisLayout: some View {
         ScrollView {
             VStack(spacing: 20) {
                 summaryHeader
 
-                if let result = analysisResult {
-                    accuracySummary(result)
-                    moveBreakdown(result)
-                } else if isAnalyzing {
+                if isAnalyzing {
                     analyzingCard
                 } else if canAnalyze {
                     startCard
@@ -46,10 +96,13 @@ struct AnalysisView: View {
             }
             .padding()
         }
-        .navigationTitle("Analysis")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
+    }
+
+    private func buildPositionsIfNeeded() {
+        guard positions.isEmpty else { return }
+        let lanMoves = record.lanMoves
+        positions = (0...lanMoves.count).map {
+            ChessGame(mode: .twoPlayer, replaying: Array(lanMoves.prefix($0)))
         }
     }
 
@@ -182,8 +235,17 @@ struct AnalysisView: View {
                         JudgmentBadge(judgment: move.judgment)
                     }
                     .padding(.vertical, 6)
+                    .padding(.horizontal, 6)
+                    .background(
+                        move.ply == selectedPly ? Color.appControlBackground : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
                     Divider()
                 }
+                .id(move.ply)
+                .contentShape(Rectangle())
+                .onTapGesture { selectedPly = move.ply }
+                .accessibilityAddTraits(.isButton)
             }
         }
     }
