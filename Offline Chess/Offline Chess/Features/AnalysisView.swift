@@ -17,6 +17,7 @@ struct AnalysisView: View {
 
     @State private var analysisResult: AnalysisResult?
     @State private var isAnalyzing = false
+    @State private var analysisProgress: Double = 0
     @State private var showPaywall = false
 
     init(record: CompletedGameRecord, previewResult: AnalysisResult? = nil) {
@@ -36,14 +37,7 @@ struct AnalysisView: View {
                     accuracySummary(result)
                     moveBreakdown(result)
                 } else if isAnalyzing {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("Analyzing with Stockfish…")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    analyzingCard
                 } else if canAnalyze {
                     startCard
                 } else {
@@ -97,6 +91,26 @@ struct AnalysisView: View {
         }
         .padding()
         .background(Color.appControlBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var analyzingCard: some View {
+        VStack(spacing: 12) {
+            ProgressView(value: analysisProgress)
+                .tint(.chessAccent)
+                .animation(.easeOut(duration: 0.2), value: analysisProgress)
+            HStack {
+                Text("Analyzing with Stockfish…")
+                Spacer()
+                Text(String(format: "%.0f%%", analysisProgress * 100))
+                    .monospacedDigit()
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.appControlBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.vertical, 24)
     }
 
     private var lockedCard: some View {
@@ -176,6 +190,7 @@ struct AnalysisView: View {
 
     private func runAnalysis() async {
         guard canAnalyze else { return }
+        analysisProgress = 0
         isAnalyzing = true
         defer { isAnalyzing = false }
 
@@ -184,7 +199,9 @@ struct AnalysisView: View {
         }
 
         let service = AnalysisService(engineManager: appState.engineManager)
-        analysisResult = await service.analyze(moves: record.moves)
+        analysisResult = await service.analyze(moves: record.moves) { progress in
+            analysisProgress = progress
+        }
     }
 }
 

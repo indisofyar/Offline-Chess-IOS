@@ -65,18 +65,27 @@ struct AnalysisService {
     }
 
     /// Analyzes `moves` (in game order) and returns per-move judgments
-    /// plus overall accuracy for each side.
-    func analyze(moves: [Move], depth: Int = 14) async -> AnalysisResult {
+    /// plus overall accuracy for each side. `onProgress` is called with a
+    /// 0...1 fraction after each position is evaluated.
+    func analyze(
+        moves: [Move],
+        depth: Int = 14,
+        onProgress: (Double) -> Void = { _ in }
+    ) async -> AnalysisResult {
         let lanMoves = moves.map(\.lan)
 
         var evaluations: [Double] = []
         var engineBestMoves: [String?] = []
+
+        let totalPositions = lanMoves.count + 1
+        onProgress(0)
 
         for ply in 0...lanMoves.count {
             let prefix = Array(lanMoves.prefix(ply))
             let evaluation = await engineManager.evaluate(movesFromStart: prefix, depth: depth)
             evaluations.append(evaluation.centipawns)
             engineBestMoves.append(evaluation.bestMove)
+            onProgress(Double(ply + 1) / Double(totalPositions))
         }
 
         var analyses: [MoveAnalysis] = []
