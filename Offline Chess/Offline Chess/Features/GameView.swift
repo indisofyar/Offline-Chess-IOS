@@ -63,6 +63,8 @@ struct GameView: View {
             if let result = game.result {
                 GameOverCard(
                     result: result,
+                    outcome: GameOverCard.Outcome(result: result, game: game),
+                    moveCount: game.moveHistory.count,
                     onPlayAgain: playAgain,
                     onAnalyze: { navigateToAnalysis = true },
                     onMainMenu: { dismiss() }
@@ -271,29 +273,107 @@ struct GameView: View {
 }
 
 private struct GameOverCard: View {
+    /// How the game ended from the player's point of view, which sets
+    /// the card's tone: a celebration for a win, encouragement otherwise.
+    enum Outcome: Equatable {
+        /// The human beat the bot.
+        case victory(BotDifficulty)
+        /// The bot beat the human.
+        case defeat(BotDifficulty)
+        /// A pass-and-play game won by one side.
+        case sideWins(Piece.Color)
+        case draw
+
+        @MainActor
+        init(result: GameResult, game: ChessGame) {
+            switch (result.winner, game.mode) {
+            case (nil, _):
+                self = .draw
+            case let (winner?, .onePlayer):
+                self = winner == game.humanColor ? .victory(game.botDifficulty) : .defeat(game.botDifficulty)
+            case let (winner?, .twoPlayer):
+                self = .sideWins(winner)
+            }
+        }
+
+        var isCelebration: Bool {
+            switch self {
+            case .victory, .sideWins: true
+            case .defeat, .draw: false
+            }
+        }
+    }
+
     let result: GameResult
+    let outcome: Outcome
+    let moveCount: Int
     let onPlayAgain: () -> Void
     let onAnalyze: () -> Void
     let onMainMenu: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isShown = false
+
     var body: some View {
+        ZStack {
+            Color.black.opacity(isShown ? 0.3 : 0)
+                .ignoresSafeArea()
+
+            if outcome.isCelebration && !reduceMotion {
+                ConfettiView()
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
+
+            card
+                .scaleEffect(isShown || reduceMotion ? 1 : 0.85)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) {
+                isShown = true
+            }
+        }
+        .sensoryFeedback(outcome.isCelebration ? .success : .impact(weight: .light), trigger: isShown) { _, shown in
+            shown
+        }
+    }
+
+    private var card: some View {
         VStack(spacing: 16) {
-            Text("Game Over")
-                .font(.title2.bold())
-            Text(result.description)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            badge
+
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.system(.largeTitle, design: .rounded).bold())
+                    .foregroundStyle(titleStyle)
+                    .multilineTextAlignment(.center)
+                Text(subtitle)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if case let .victory(difficulty) = outcome {
+                HStack(spacing: 8) {
+                    statPill(icon: "star.fill", text: "Beat \(difficulty.targetRating)")
+                    statPill(icon: "clock.fill", text: "\(fullMoves) moves")
+                }
+            }
 
             VStack(spacing: 10) {
                 Button(action: onPlayAgain) {
-                    Label("Play Again", systemImage: "arrow.counterclockwise")
+                    Label(playAgainTitle, systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(outcome.isCelebration ? Color.chessGold : Color.chessAccent)
 
                 Button(action: onAnalyze) {
-                    Label("Analyse", systemImage: "chart.bar.fill")
+                    Label(analyseTitle, systemImage: "chart.bar.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -304,11 +384,191 @@ private struct GameOverCard: View {
                 }
                 .buttonStyle(.bordered)
             }
+            .controlSize(.large)
         }
         .padding(24)
-        .frame(maxWidth: 320)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .frame(maxWidth: 340)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            if outcome.isCelebration {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color.chessGold.opacity(0.6), lineWidth: 2)
+            }
+        }
+        .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
         .padding(32)
+    }
+
+    private var badge: some View {
+        ZStack {
+            Circle()
+                .fill(badgeTint.gradient)
+                .frame(width: 84, height: 84)
+                .shadow(color: badgeTint.opacity(0.5), radius: outcome.isCelebration ? 16 : 0)
+            Image(systemName: badgeIcon)
+                .font(.system(size: 38, weight: .bold))
+                .foregroundStyle(.white)
+                .symbolEffect(.bounce, options: .repeat(2), value: isShown)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func statPill(icon: String, text: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(.caption.bold())
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .foregroundStyle(Color.chessGold)
+            .background(Color.chessGold.opacity(0.15), in: Capsule())
+    }
+
+    /// Moves counted the way chess players count them (one per pair).
+    private var fullMoves: Int {
+        (moveCount + 1) / 2
+    }
+
+    private var title: String {
+        switch outcome {
+        case .victory: "You Won!"
+        case .defeat: "Good Game"
+        case let .sideWins(color): color == .white ? "White Wins!" : "Black Wins!"
+        case .draw: "It's a Draw"
+        }
+    }
+
+    private var titleStyle: AnyShapeStyle {
+        outcome.isCelebration
+            ? AnyShapeStyle(LinearGradient(colors: [Color.chessGold, .orange], startPoint: .leading, endPoint: .trailing))
+            : AnyShapeStyle(.primary)
+    }
+
+    private var subtitle: String {
+        switch (outcome, result.reason) {
+        case let (.victory(difficulty), .checkmate):
+            "You checkmated the \(difficulty.displayName) bot"
+        case let (.victory(difficulty), _):
+            "The \(difficulty.displayName) bot resigned"
+        case let (.defeat(difficulty), .checkmate):
+            "The \(difficulty.displayName) bot found checkmate"
+        case let (.defeat(difficulty), _):
+            "You resigned against the \(difficulty.displayName) bot"
+        default:
+            result.description
+        }
+    }
+
+    private var message: String {
+        switch outcome {
+        case .victory:
+            Self.victoryCheers[moveCount % Self.victoryCheers.count]
+        case .defeat:
+            "Every loss makes you sharper. Analyse the game to spot the turning point."
+        case .sideWins:
+            "What a game! Congratulations to the winner."
+        case .draw:
+            "A hard-fought battle with nothing to separate you."
+        }
+    }
+
+    private static let victoryCheers = [
+        "Brilliant play. That was a masterclass!",
+        "Outstanding! The board was yours.",
+        "Superb technique. You made that look easy!",
+        "What a finish. You earned this one!",
+    ]
+
+    private var playAgainTitle: String {
+        if case .defeat = outcome { "Rematch" } else { "Play Again" }
+    }
+
+    private var analyseTitle: String {
+        outcome.isCelebration ? "Relive the Game" : "Analyse"
+    }
+
+    private var badgeIcon: String {
+        switch outcome {
+        case .victory, .sideWins: "trophy.fill"
+        case .defeat: "arrow.up.heart.fill"
+        case .draw: "equal"
+        }
+    }
+
+    private var badgeTint: Color {
+        switch outcome {
+        case .victory, .sideWins: .chessGold
+        case .defeat: .chessAccent
+        case .draw: .gray
+        }
+    }
+}
+
+/// A short burst of falling confetti drawn with a ``Canvas`` so it stays
+/// cheap however many pieces there are.
+private struct ConfettiView: View {
+    private struct Confetto {
+        let x: Double
+        let delay: Double
+        let speed: Double
+        let drift: Double
+        let spin: Double
+        let size: CGSize
+        let color: Color
+    }
+
+    private static let colors: [Color] = [.chessGold, .chessAccent, .orange, .pink, .blue, .yellow, .mint]
+    private static let duration: Double = 4.5
+
+    private static func makeConfetti() -> [Confetto] {
+        (0..<90).map { index in
+            Confetto(
+                x: .random(in: 0...1),
+                delay: .random(in: 0...0.9),
+                speed: .random(in: 0.22...0.42),
+                drift: .random(in: -40...40),
+                spin: .random(in: 2...7) * (index.isMultiple(of: 2) ? 1 : -1),
+                size: CGSize(width: .random(in: 6...10), height: .random(in: 10...16)),
+                color: colors[index % colors.count]
+            )
+        }
+    }
+
+    @State private var confetti = Self.makeConfetti()
+    @State private var start = Date()
+    @State private var isFinished = false
+
+    var body: some View {
+        if !isFinished {
+            TimelineView(.animation) { timeline in
+                let elapsed = timeline.date.timeIntervalSince(start)
+                Canvas { context, size in
+                    for confetto in confetti {
+                        let t = elapsed - confetto.delay
+                        guard t > 0 else { continue }
+                        let y = -20 + t * confetto.speed * size.height
+                        guard y < size.height + 20 else { continue }
+                        let x = confetto.x * size.width + sin(t * 2 + confetto.x * 10) * confetto.drift
+
+                        var pieceContext = context
+                        pieceContext.opacity = min(1, max(0, Self.duration - t))
+                        pieceContext.translateBy(x: x, y: y)
+                        pieceContext.rotate(by: .radians(t * confetto.spin))
+                        // Squash horizontally over time so pieces look like they flutter.
+                        pieceContext.scaleBy(x: cos(t * confetto.spin * 0.8), y: 1)
+                        let rect = CGRect(
+                            x: -confetto.size.width / 2,
+                            y: -confetto.size.height / 2,
+                            width: confetto.size.width,
+                            height: confetto.size.height
+                        )
+                        pieceContext.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(confetto.color))
+                    }
+                }
+            }
+            .task {
+                try? await Task.sleep(for: .seconds(Self.duration + 1))
+                isFinished = true
+            }
+        }
     }
 }
 
@@ -324,4 +584,37 @@ private struct GameOverCard: View {
         GameView(config: GameConfig(mode: .onePlayer, humanColor: .white, difficulty: .advanced))
             .environment(AppState())
     }
+}
+
+#Preview("Game Over - Victory") {
+    GameOverCard(
+        result: GameResult(winner: .white, reason: .checkmate),
+        outcome: .victory(.advanced),
+        moveCount: 47,
+        onPlayAgain: {},
+        onAnalyze: {},
+        onMainMenu: {}
+    )
+}
+
+#Preview("Game Over - Defeat") {
+    GameOverCard(
+        result: GameResult(winner: .black, reason: .checkmate),
+        outcome: .defeat(.advanced),
+        moveCount: 52,
+        onPlayAgain: {},
+        onAnalyze: {},
+        onMainMenu: {}
+    )
+}
+
+#Preview("Game Over - Draw") {
+    GameOverCard(
+        result: GameResult(winner: nil, reason: .stalemate),
+        outcome: .draw,
+        moveCount: 80,
+        onPlayAgain: {},
+        onAnalyze: {},
+        onMainMenu: {}
+    )
 }
