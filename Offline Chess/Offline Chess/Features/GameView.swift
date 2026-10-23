@@ -217,12 +217,24 @@ struct GameView: View {
             let botPlayer
         else { return }
 
-        if let lan = await botPlayer.chooseMove(movesFromStart: game.lanMoves, difficulty: game.botDifficulty),
-            !Task.isCancelled
-        {
-            game.applyEngineMove(lan: lan)
+        // The engine's response stream can carry stray lines from an
+        // earlier search, so a reply may not be legal here (most often
+        // when the bot is in check and few moves are legal). Ask again
+        // rather than leaving the bot stuck without a move.
+        for attempt in 0..<Self.botMoveAttempts {
+            guard let lan = await botPlayer.chooseMove(
+                    movesFromStart: game.lanMoves,
+                    difficulty: game.botDifficulty,
+                    allowCareless: attempt == 0
+                ),
+                !Task.isCancelled
+            else { return }
+
+            if game.applyEngineMove(lan: lan) { return }
         }
     }
+
+    private static let botMoveAttempts = 3
 
     /// Saves an unfinished bot game so it can be resumed from the home
     /// screen. Nothing is saved until the first move is played, so just

@@ -105,6 +105,12 @@ final class ChessGame {
         mode == .twoPlayer || sideToMove == humanColor
     }
 
+    /// Whether the board is drawn from Black's side, i.e. the human is
+    /// playing Black against the bot.
+    var isBoardFlipped: Bool {
+        mode == .onePlayer && humanColor == .black
+    }
+
     var result: GameResult? {
         if let manualResult { return manualResult }
 
@@ -137,7 +143,7 @@ final class ChessGame {
     /// Handles a tap on `square`: selects a piece, moves a selected
     /// piece to a legal destination, or clears the selection.
     func select(_ square: Square) {
-        guard !isGameOver, pendingPromotion == nil else { return }
+        guard !isGameOver, pendingPromotion == nil, isHumanTurn else { return }
 
         if let selected = selectedSquare {
             if selected == square {
@@ -166,7 +172,7 @@ final class ChessGame {
     /// Returns `false` if there's no piece here that can move.
     @discardableResult
     func pickUp(_ square: Square) -> Bool {
-        guard !isGameOver, pendingPromotion == nil,
+        guard !isGameOver, pendingPromotion == nil, isHumanTurn,
               let piece = board.position.piece(at: square), piece.color == sideToMove else { return false }
 
         selectedSquare = square

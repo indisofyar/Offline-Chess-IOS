@@ -80,11 +80,10 @@ struct PixelBoardView: View {
         .aspectRatio(Self.boardWidth / Self.totalHeight, contentMode: .fit)
     }
 
-    /// Squares in drawing order: rank 8 (top, furthest away) to rank 1,
-    /// a-file to h-file.
+    /// Squares in drawing order: top row (furthest away) to bottom row,
+    /// left to right.
     private func square(at index: Int) -> Square {
-        let file = Square.File.allCases[index % 8]
-        return Square(file, Square.Rank(8 - index / 8))
+        boardSquare(row: index / 8, column: index % 8, flipped: game.isBoardFlipped)
     }
 
     /// The square under `location` (in view points), if any.
@@ -94,16 +93,15 @@ struct PixelBoardView: View {
         let column = Int((x / Self.cellWidth).rounded(.down))
         let row = Int((y / Self.cellHeight).rounded(.down))
         guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
-        return Square(Square.File.allCases[column], Square.Rank(8 - row))
+        return boardSquare(row: row, column: column, flipped: game.isBoardFlipped)
     }
 
     /// Top-left corner of a square, in sprite pixels from the view's origin.
     private func origin(of square: Square) -> CGPoint {
-        let column = CGFloat(Square.File.allCases.firstIndex(of: square.file) ?? 0)
-        let row = CGFloat(8 - square.rank.value)
+        let position = boardPosition(of: square, flipped: game.isBoardFlipped)
         return CGPoint(
-            x: Self.gridOrigin.x + column * Self.cellWidth,
-            y: Self.headroom + Self.gridOrigin.y + row * Self.cellHeight
+            x: Self.gridOrigin.x + CGFloat(position.column) * Self.cellWidth,
+            y: Self.headroom + Self.gridOrigin.y + CGFloat(position.row) * Self.cellHeight
         )
     }
 

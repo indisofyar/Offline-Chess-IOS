@@ -31,16 +31,25 @@ final class BotPlayer {
     }
 
     /// Asks the engine for a move given the moves played so far (in
-    /// engine LAN form) and the bot's difficulty.
+    /// engine LAN form) and the bot's difficulty. With `allowCareless`
+    /// off, the engine always plays its own best move.
     ///
     /// - returns: The chosen move in LAN form (e.g. `"e2e4"`), or `nil`
     /// if the engine couldn't produce one.
-    func chooseMove(movesFromStart moves: [String], difficulty: BotDifficulty) async -> String? {
+    func chooseMove(
+        movesFromStart moves: [String],
+        difficulty: BotDifficulty,
+        allowCareless: Bool = true
+    ) async -> String? {
         isThinking = true
         defer { isThinking = false }
         let start = ContinuousClock.now
         let minimumDelay = Duration.seconds(Double.random(in: Self.minimumReplyDelay))
-        let move = await engineManager.bestMove(movesFromStart: moves, difficulty: difficulty)
+        let move = await engineManager.bestMove(
+            movesFromStart: moves,
+            difficulty: difficulty,
+            allowCareless: allowCareless
+        )
         if move == nil, !(await engineManager.isAvailable) {
             isEngineUnavailable = true
         }

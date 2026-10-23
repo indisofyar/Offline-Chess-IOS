@@ -6,14 +6,14 @@
 import SwiftUI
 import ChessKit
 
-/// The root screen: pick 1-player/2-player, see the difficulty picker
-/// for 1-player games, continue an unfinished bot game, jump into last
+/// The root screen: pick 1-player/2-player, see the side and difficulty
+/// pickers for 1-player games, continue an unfinished bot game, jump into last
 /// game's analysis, and reach
 /// settings/skins/the paywall.
 struct HomeView: View {
     @Environment(AppState.self) private var appState
 
-    @State private var showDifficultyPicker = false
+    @State private var showBotSetup = false
     @State private var showSettings = false
     @State private var activeGameConfig: GameConfig?
     @State private var navigateToAnalysis = false
@@ -39,10 +39,10 @@ struct HomeView: View {
                         MenuCardButton(
                             icon: "cpu",
                             title: "Play vs Bot",
-                            subtitle: "Choose a difficulty and play Stockfish",
+                            subtitle: "Choose your side and difficulty",
                             tint: .chessAccent
                         ) {
-                            showDifficultyPicker = true
+                            showBotSetup = true
                         }
 
                         MenuCardButton(
@@ -79,10 +79,19 @@ struct HomeView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showDifficultyPicker) {
-                DifficultyPickerView(initialDifficulty: appState.lastDifficulty) { difficulty in
+            .sheet(isPresented: $showBotSetup) {
+                SidePickerView(
+                    initialSide: appState.lastSideChoice,
+                    initialDifficulty: appState.lastDifficulty
+                ) { side, difficulty in
+                    appState.updateLastSideChoice(side)
                     appState.updateLastDifficulty(difficulty)
-                    activeGameConfig = GameConfig(mode: .onePlayer, humanColor: .white, difficulty: difficulty)
+                    showBotSetup = false
+                    activeGameConfig = GameConfig(
+                        mode: .onePlayer,
+                        humanColor: side.resolvedColor(),
+                        difficulty: difficulty
+                    )
                 }
             }
             .sheet(isPresented: $showSettings) {

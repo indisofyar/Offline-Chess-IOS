@@ -111,8 +111,13 @@ actor EngineManager {
 
     /// Returns the engine's best move (in LAN form, e.g. `"e2e4"` or
     /// `"e7e8q"`) for the position reached by playing `moves` from the
-    /// starting position, using the given bot `difficulty`.
-    func bestMove(movesFromStart moves: [String], difficulty: BotDifficulty) async -> String? {
+    /// starting position, using the given bot `difficulty`. With
+    /// `allowCareless` off, never swaps in a random candidate line.
+    func bestMove(
+        movesFromStart moves: [String],
+        difficulty: BotDifficulty,
+        allowCareless: Bool = true
+    ) async -> String? {
         guard await ensureStarted() else { return nil }
         await acquireTurn()
         defer { releaseTurn() }
@@ -137,7 +142,8 @@ actor EngineManager {
                     candidates[line] = move
                 }
             case let .bestmove(move, _):
-                if Double.random(in: 0..<1) < difficulty.carelessMoveChance,
+                if allowCareless,
+                    Double.random(in: 0..<1) < difficulty.carelessMoveChance,
                     let careless = candidates.values.randomElement()
                 {
                     return careless

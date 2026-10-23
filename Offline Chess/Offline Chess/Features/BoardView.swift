@@ -31,10 +31,13 @@ struct BoardView: View {
             let cornerRadius: CGFloat = skin.frame == nil ? 10 : 0
 
             VStack(spacing: 0) {
-                ForEach((1...8).reversed(), id: \.self) { rankValue in
+                ForEach(0..<8, id: \.self) { row in
                     HStack(spacing: 0) {
-                        ForEach(Square.File.allCases, id: \.self) { file in
-                            squareView(square: Square(file, Square.Rank(rankValue)), size: cell)
+                        ForEach(0..<8, id: \.self) { column in
+                            squareView(
+                                square: boardSquare(row: row, column: column, flipped: game.isBoardFlipped),
+                                size: cell
+                            )
                         }
                     }
                 }
@@ -96,7 +99,7 @@ struct BoardView: View {
         let column = Int((location.x / cell).rounded(.down))
         let row = Int((location.y / cell).rounded(.down))
         guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
-        return Square(Square.File.allCases[column], Square.Rank(8 - row))
+        return boardSquare(row: row, column: column, flipped: game.isBoardFlipped)
     }
 
     @ViewBuilder
@@ -205,6 +208,22 @@ extension ChessGame {
     }
 }
 
+/// The square drawn at `row` (0 is the top) and `column` (0 is the
+/// left). White is at the bottom unless `flipped`.
+func boardSquare(row: Int, column: Int, flipped: Bool) -> Square {
+    flipped
+        ? Square(Square.File.allCases[7 - column], Square.Rank(row + 1))
+        : Square(Square.File.allCases[column], Square.Rank(8 - row))
+}
+
+/// Where `square` is drawn; the inverse of ``boardSquare(row:column:flipped:)``.
+func boardPosition(of square: Square, flipped: Bool) -> (row: Int, column: Int) {
+    let file = Square.File.allCases.firstIndex(of: square.file) ?? 0
+    return flipped
+        ? (row: square.rank.value - 1, column: 7 - file)
+        : (row: 8 - square.rank.value, column: file)
+}
+
 func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
     if let piece {
         return "\(square.notation), \(piece.color == .white ? "white" : "black") \(String(describing: piece.kind).lowercased())"
@@ -226,6 +245,12 @@ func squareAccessibilityLabel(square: Square, piece: Piece?) -> String {
     game.makeMove(from: .b8, to: .c6)
     game.select(.f3)
     return BoardView(game: game, skin: .walnut)
+        .padding()
+}
+
+#Preview("Board - Playing Black") {
+    let game = ChessGame(mode: .onePlayer, humanColor: .black, replaying: ["e2e4"])
+    return BoardView(game: game, skin: .classicGreen)
         .padding()
 }
 
