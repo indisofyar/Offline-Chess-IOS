@@ -41,7 +41,7 @@ struct GameView: View {
         .padding(.vertical)
         .navigationTitle(game.mode == .onePlayer ? "vs \(game.botDifficulty.displayName)" : "Pass & Play")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: game.moveHistory.count) {
+        .task(id: GameTaskKey(game: ObjectIdentifier(game), moveCount: game.moveHistory.count)) {
             if botPlayer == nil {
                 botPlayer = BotPlayer(engineManager: appState.engineManager)
             }
@@ -60,8 +60,9 @@ struct GameView: View {
             if let result = game.result {
                 GameOverCard(
                     result: result,
+                    onPlayAgain: playAgain,
                     onAnalyze: { navigateToAnalysis = true },
-                    onDone: { dismiss() }
+                    onMainMenu: { dismiss() }
                 )
             }
         }
@@ -77,6 +78,22 @@ struct GameView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
+    }
+
+    /// Re-runs the game loop when a move is played or the game is
+    /// replaced by Play Again, even if the move count is unchanged.
+    private struct GameTaskKey: Equatable {
+        let game: ObjectIdentifier
+        let moveCount: Int
+    }
+
+    /// Starts a fresh game with the same mode, colour and difficulty.
+    private func playAgain() {
+        game = ChessGame(
+            mode: game.mode,
+            humanColor: game.humanColor,
+            botDifficulty: game.botDifficulty
+        )
     }
 
     private var promotionSheetBinding: Binding<Bool> {
@@ -239,8 +256,9 @@ struct GameView: View {
 
 private struct GameOverCard: View {
     let result: GameResult
+    let onPlayAgain: () -> Void
     let onAnalyze: () -> Void
-    let onDone: () -> Void
+    let onMainMenu: () -> Void
 
     var body: some View {
         VStack(spacing: 16) {
@@ -252,14 +270,20 @@ private struct GameOverCard: View {
                 .multilineTextAlignment(.center)
 
             VStack(spacing: 10) {
-                Button(action: onAnalyze) {
-                    Label("Analyze Game", systemImage: "chart.bar.fill")
+                Button(action: onPlayAgain) {
+                    Label("Play Again", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
 
-                Button(action: onDone) {
-                    Text("Done")
+                Button(action: onAnalyze) {
+                    Label("Analyse", systemImage: "chart.bar.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button(action: onMainMenu) {
+                    Label("Main Menu", systemImage: "house.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)

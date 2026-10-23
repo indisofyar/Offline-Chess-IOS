@@ -65,23 +65,34 @@ struct AnalysisService {
     }
 
     /// Analyzes `moves` (in game order) and returns per-move judgments
-    /// plus overall accuracy for each side.
-    func analyze(moves: [Move], depth: Int = 14) async -> AnalysisResult {
+    /// plus overall accuracy for each side. `onProgress` is called with a
+    /// 0...1 fraction after each position is evaluated.
+    func analyze(
+        moves: [Move],
+        depth: Int = 14,
+        onProgress: (Double) -> Void = { _ in }
+    ) async -> AnalysisResult {
         let lanMoves = moves.map(\.lan)
 
         var evaluations: [Double] = []
         var engineBestMoves: [String?] = []
 
+        let totalPositions = lanMoves.count + 1
+        onProgress(0)
+
         for ply in 0...lanMoves.count {
             let prefix = Array(lanMoves.prefix(ply))
             let evaluation = await engineManager.evaluate(movesFromStart: prefix, depth: depth)
-            evaluations.append(evaluation.centipawns)
+            // Cap mate scores so missing a long mate doesn't register as
+            // a loss of thousands of centipawns.
+            evaluations.append(min(max(evaluation.centipawns, -Self.evaluationCap), Self.evaluationCap))
             engineBestMoves.append(evaluation.bestMove)
+            onProgress(Double(ply + 1) / Double(totalPositions))
         }
 
         var analyses: [MoveAnalysis] = []
-        var whiteLosses: [Double] = []
-        var blackLosses: [Double] = []
+        var whiteAccuracies: [Double] = []
+        var blackAccuracies: [Double] = []
 
         for i in 0..<moves.count {
             let move = moves[i]
@@ -106,27 +117,45 @@ struct AnalysisService {
                 )
             )
 
+            let moveAccuracy = accuracy(
+                winPercentBefore: winPercent(centipawns: evalBeforeForMover),
+                winPercentAfter: winPercent(centipawns: evalAfterForMover)
+            )
             if moverColor == .white {
-                whiteLosses.append(loss)
+                whiteAccuracies.append(moveAccuracy)
             } else {
-                blackLosses.append(loss)
+                blackAccuracies.append(moveAccuracy)
             }
         }
 
         return AnalysisResult(
             moves: analyses,
-            whiteAccuracy: accuracy(for: whiteLosses),
-            blackAccuracy: accuracy(for: blackLosses)
+            whiteAccuracy: average(whiteAccuracies),
+            blackAccuracy: average(blackAccuracies)
         )
     }
 
-    /// Converts an average centipawn loss into a 0-100% accuracy score,
-    /// using the same curve popularized by lichess's accuracy feature.
-    private func accuracy(for losses: [Double]) -> Double {
-        guard !losses.isEmpty else { return 100 }
-        let average = losses.reduce(0, +) / Double(losses.count)
-        let raw = 103.1668 * exp(-0.04354 * average) - 3.1669
+    /// Evaluations are clamped to this many centipawns either way.
+    private static let evaluationCap: Double = 1_000
+
+    /// The mover's chance of winning (0-100) for an evaluation, using
+    /// lichess's centipawn-to-win% curve.
+    private func winPercent(centipawns: Double) -> Double {
+        50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1)
+    }
+
+    /// A single move's 0-100% accuracy from how much it dropped the
+    /// mover's win chance, using lichess's accuracy curve (which takes a
+    /// win% drop, not a centipawn loss).
+    private func accuracy(winPercentBefore: Double, winPercentAfter: Double) -> Double {
+        let drop = max(0, winPercentBefore - winPercentAfter)
+        let raw = 103.1668 * exp(-0.04354 * drop) - 3.1669
         return min(100, max(0, raw))
+    }
+
+    private func average(_ values: [Double]) -> Double {
+        guard !values.isEmpty else { return 100 }
+        return values.reduce(0, +) / Double(values.count)
     }
 
     private func classify(loss: Double, playedEngineBest: Bool, move: Move) -> MoveJudgment {
