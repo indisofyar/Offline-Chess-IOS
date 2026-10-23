@@ -90,6 +90,7 @@ struct HomeView: View {
                     activeGameConfig = GameConfig(
                         mode: .onePlayer,
                         humanColor: side.resolvedColor(),
+                        isRandomSide: side == .random,
                         difficulty: difficulty
                     )
                 }

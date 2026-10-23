@@ -52,6 +52,8 @@ struct GameConfig: Hashable, Identifiable {
     let id = UUID()
     let mode: GameMode
     var humanColor: Piece.Color = .white
+    /// Whether the side was picked at random, so Play Again flips again.
+    var isRandomSide = false
     var difficulty: BotDifficulty = .intermediate
     /// Moves (LAN) to replay before play begins, when resuming a saved game.
     var resumeMoves: [String] = []

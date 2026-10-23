@@ -19,7 +19,10 @@ struct GameView: View {
     @State private var showResignConfirm = false
     @State private var navigateToAnalysis = false
 
+    private let isRandomSide: Bool
+
     init(config: GameConfig) {
+        isRandomSide = config.isRandomSide
         _game = State(
             initialValue: ChessGame(
                 mode: config.mode,
@@ -87,11 +90,12 @@ struct GameView: View {
         let moveCount: Int
     }
 
-    /// Starts a fresh game with the same mode, colour and difficulty.
+    /// Starts a fresh game with the same mode, difficulty and colour,
+    /// or a newly flipped colour if the side was picked at random.
     private func playAgain() {
         game = ChessGame(
             mode: game.mode,
-            humanColor: game.humanColor,
+            humanColor: isRandomSide ? SideChoice.random.resolvedColor() : game.humanColor,
             botDifficulty: game.botDifficulty
         )
     }
