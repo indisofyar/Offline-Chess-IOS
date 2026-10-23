@@ -16,3 +16,19 @@ DerivedData/
 
 # Swift Package Manager
 .build/
+Offline Chess/extracted-pieces/board/board-empty.png
+Offline Chess/extracted-pieces/board/board-original.png
+Offline Chess/extracted-pieces/pieces/black-bishop.png
+Offline Chess/extracted-pieces/pieces/black-king.png
+Offline Chess/extracted-pieces/pieces/black-knight.png
+Offline Chess/extracted-pieces/pieces/black-pawn.png
+Offline Chess/extracted-pieces/pieces/black-queen.png
+Offline Chess/extracted-pieces/pieces/black-rook.png
+Offline Chess/extracted-pieces/pieces/white-bishop.png
+Offline Chess/extracted-pieces/pieces/white-king-hero.png
+Offline Chess/extracted-pieces/pieces/white-king.png
+Offline Chess/extracted-pieces/pieces/white-knight.png
+Offline Chess/extracted-pieces/pieces/white-pawn.png
+Offline Chess/extracted-pieces/pieces/white-queen-faded.png
+Offline Chess/extracted-pieces/pieces/white-rook.png
+Offline Chess/chess-assets.zip
