@@ -7,7 +7,7 @@ import Foundation
 import CryptoKit
 import ChessKitEngine
 
-/// Owns a single Stockfish ``Engine`` instance and serializes access to
+/// Owns a single Stockfish ``Engine`` instance and serialises access to
 /// it, since only one UCI request can be in flight at a time.
 ///
 /// This type wraps the raw UCI protocol so the rest of the app never

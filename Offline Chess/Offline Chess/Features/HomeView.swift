@@ -56,7 +56,7 @@ struct HomeView: View {
 
                         MenuCardButton(
                             icon: "chart.bar.fill",
-                            title: "Analyze Last Game",
+                            title: "Analyse Last Game",
                             subtitle: appState.lastCompletedGame == nil
                                 ? "Play a game first" : "Move-by-move breakdown",
                             tint: .purple

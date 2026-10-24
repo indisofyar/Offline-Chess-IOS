@@ -7,7 +7,7 @@ import Foundation
 import ChessKit
 
 /// A lightweight snapshot of the most recently finished game, kept
-/// around so "Analyze last game" has something to work with.
+/// around so "Analyse last game" has something to work with.
 struct CompletedGameRecord {
     let moves: [Move]
     let resultDescription: String

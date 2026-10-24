@@ -130,7 +130,7 @@ struct StatTile: View {
 // MARK: - Menu Card Button
 
 /// A big tappable card used on the home screen for the primary actions
-/// (play vs bot, pass & play, analyze last game).
+/// (play vs bot, pass & play, analyse last game).
 struct MenuCardButton: View {
     let icon: String
     let title: String

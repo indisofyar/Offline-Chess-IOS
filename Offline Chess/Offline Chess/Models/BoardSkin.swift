@@ -106,7 +106,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel: Color.white
         case .pixelRetro: Color(red: 224 / 255, green: 240 / 255, blue: 200 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0xE8D3A9)
-        case .cartoon: Color(hex: 0xEAE9D2)
+        case .cartoon: Color(hex: 0xE4BF94)
         case .geometric: Color(hex: 0xE4BF94)
         case .geometricCocoa: Color(hex: 0xDDB088)
         case .geometricStone: Color(hex: 0xCAA184)
@@ -123,7 +123,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .pixel: Color(red: 0.145, green: 0.145, blue: 0.145)
         case .pixelRetro: Color(red: 30 / 255, green: 50 / 255, blue: 32 / 255)
         case .clubDeco, .clubDecoGilded: Color(hex: 0x9A6A3E)
-        case .cartoon: Color(hex: 0xB2A696)
+        case .cartoon: Color(hex: 0x74472B)
         case .geometric: Color(hex: 0x74472B)
         case .geometricCocoa: Color(hex: 0x5E4234)
         case .geometricStone: Color(hex: 0x6C5D57)
@@ -153,7 +153,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         case .ocean: Color.black.opacity(0.22)
         case .midnight: Color.white.opacity(0.35)
         case .coral: Color.black.opacity(0.25)
-        // Gold, not gray: markers often sit on the grayscale sprites
+        // Gold, not grey: markers often sit on the greyscale sprites
         // that overhang the square from the rank in front.
         case .pixel, .pixelRetro: Color(red: 0.95, green: 0.75, blue: 0.2).opacity(0.9)
         case .clubDeco, .clubDecoGilded: Color.black.opacity(0.25)
@@ -184,7 +184,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
     }
 
     /// Whether this skin draws the board and pieces from the pixel-art
-    /// sprite pack (see ``PixelBoardView``) rather than flat colors and
+    /// sprite pack (see ``PixelBoardView``) rather than flat colours and
     /// Unicode glyphs.
     var usesPixelArt: Bool {
         family == .pixel
@@ -211,7 +211,7 @@ enum BoardSkin: String, CaseIterable, Identifiable, Codable {
         }
     }
 
-    /// Fill for a last-move square of the given color. Club Deco swaps the
+    /// Fill for a last-move square of the given colour. Club Deco swaps the
     /// square to an opaque brass tone; other skins tint it.
     func lastMoveHighlight(onLightSquare isLight: Bool) -> Color {
         switch self {

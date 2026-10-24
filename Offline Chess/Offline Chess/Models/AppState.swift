@@ -8,7 +8,7 @@ import Observation
 
 /// App-wide shared state: the engine, store and usage services, the
 /// user's chosen board skin / last difficulty / last side, and the most recently
-/// completed game (for the "Analyze last game" flow), and any unfinished
+/// completed game (for the "Analyse last game" flow), and any unfinished
 /// bot game (for the "Continue Game" flow).
 @MainActor
 @Observable

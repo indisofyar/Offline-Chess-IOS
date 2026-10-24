@@ -6,7 +6,7 @@
 import SwiftUI
 import ChessKit
 
-/// A read-only board for stepping through an analyzed game. Swipe the
+/// A read-only board for stepping through an analysed game. Swipe the
 /// board left/right (or use the buttons) to move between positions; the
 /// strip above the controls shows every move colored by its judgment,
 /// and can be tapped or scrubbed to jump straight to a move.

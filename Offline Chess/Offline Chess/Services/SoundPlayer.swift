@@ -45,7 +45,7 @@ final class SoundPlayer {
     }
 
     /// Plays the sound that matches `move`: castling, a capture or a
-    /// plain move, voiced by the color of the side that moved.
+    /// plain move, voiced by the colour of the side that moved.
     func play(for move: Move) {
         let isWhite = move.piece.color == .white
 

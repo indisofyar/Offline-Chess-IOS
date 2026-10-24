@@ -190,7 +190,7 @@ struct AnalysisView: View {
                 .tint(.chessAccent)
                 .animation(.easeOut(duration: 0.2), value: analysisProgress)
             HStack {
-                Text("Analyzing with Stockfish…")
+                Text("Analysing with Stockfish…")
                 Spacer()
                 Text(String(format: "%.0f%%", analysisProgress * 100))
                     .monospacedDigit()

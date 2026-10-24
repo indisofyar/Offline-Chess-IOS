@@ -99,7 +99,7 @@ final class ChessGame {
     }
 
     /// Whether it's currently a human's turn to move (always true in
-    /// 2-player pass-and-play; only true on the human's color in a
+    /// 2-player pass-and-play; only true on the human's colour in a
     /// 1-player game).
     var isHumanTurn: Bool {
         mode == .twoPlayer || sideToMove == humanColor

@@ -6,7 +6,7 @@
 import SwiftUI
 
 extension Color {
-    /// A color from a 24-bit `0xRRGGBB` sRGB value.
+    /// A colour from a 24-bit `0xRRGGBB` sRGB value.
     init(hex: UInt32) {
         self.init(
             .sRGB,

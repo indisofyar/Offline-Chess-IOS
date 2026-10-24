@@ -62,7 +62,7 @@ struct SettingsView: View {
                     Text(appVersion)
                         .foregroundStyle(.secondary)
                 }
-                Text("Offline Chess plays entirely on-device — no network connection is ever required to play or analyze a game.")
+                Text("Offline Chess plays entirely on-device — no network connection is ever required to play or analyse a game.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Text("Cartoon pieces by VerzatileDev, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).")

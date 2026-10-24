@@ -1,6 +1,6 @@
 # Offline Chess
 
-An iOS app (SwiftUI) for playing chess and analyzing your games — fully on-device, no wifi required.
+An iOS app (SwiftUI) for playing chess and analysing your games — fully on-device, no wifi required.
 
 *Chess and chess analysis without wifi.*
 
@@ -24,7 +24,7 @@ Offline Chess/
     Engine/         EngineManager (Stockfish UCI lifecycle), BotPlayer, AnalysisService
     Services/       AnalysisUsageTracker, PurchaseManager (StoreKit 2), ad placeholder
     Features/       Home, Game, Board, Difficulty/Skin pickers, Analysis, Paywall, Settings
-    Shared/         Design system (colors, reusable components)
+    Shared/         Design system (colours, reusable components)
     Resources/      Stockfish NNUE network files
   Offline ChessTests/
     SnapshotTests.swift

@@ -40,7 +40,7 @@ struct MoveAnalysis: Identifiable {
     let centipawnLoss: Int
 }
 
-/// The full result of analyzing a finished game.
+/// The full result of analysing a finished game.
 struct AnalysisResult {
     let moves: [MoveAnalysis]
     let whiteAccuracy: Double
@@ -64,7 +64,7 @@ struct AnalysisService {
         self.engineManager = engineManager
     }
 
-    /// Analyzes `moves` (in game order) and returns per-move judgments
+    /// Analyses `moves` (in game order) and returns per-move judgments
     /// plus overall accuracy for each side. `onProgress` is called with a
     /// 0...1 fraction after each position is evaluated.
     func analyze(
