@@ -134,6 +134,18 @@ final class ChessGame {
         return false
     }
 
+    /// The side to move's legal moves in engine LAN form, without any
+    /// promotion suffix (e.g. `"e2e4"`, or `"e7e8"` for a promotion).
+    var legalEngineMoves: Set<String> {
+        var moves: Set<String> = []
+        for piece in board.position.pieces where piece.color == sideToMove {
+            for end in board.legalMoves(forPieceAt: piece.square) {
+                moves.insert(piece.square.notation + end.notation)
+            }
+        }
+        return moves
+    }
+
     func piece(at square: Square) -> Piece? {
         board.position.piece(at: square)
     }
@@ -223,7 +235,11 @@ final class ChessGame {
         guard let parsed = EngineLANParser.parse(move: lan, for: sideToMove, in: board.position) else {
             return false
         }
-        guard let move = board.move(pieceAt: parsed.start, to: parsed.end) else { return false }
+        // ChessKit moves a piece of either colour, so a stray engine move
+        // for the other side would let it move twice in a row (and even
+        // capture the king, leaving a game that can never end).
+        guard parsed.piece.color == sideToMove,
+              let move = board.move(pieceAt: parsed.start, to: parsed.end) else { return false }
 
         selectedSquare = nil
         legalDestinations = []

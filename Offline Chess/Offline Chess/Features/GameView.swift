@@ -223,13 +223,13 @@ struct GameView: View {
             let botPlayer
         else { return }
 
-        // The engine's response stream can carry stray lines from an
-        // earlier search, so a reply may not be legal here (most often
-        // when the bot is in check and few moves are legal). Ask again
-        // rather than leaving the bot stuck without a move.
+        // The engine skips stray replies that aren't legal here, but ask
+        // again if a move still can't be applied rather than leaving the
+        // bot stuck without a move.
         for attempt in 0..<Self.botMoveAttempts {
             guard let lan = await botPlayer.chooseMove(
                     movesFromStart: game.lanMoves,
+                    legalMoves: game.legalEngineMoves,
                     difficulty: game.botDifficulty,
                     allowCareless: attempt == 0
                 ),

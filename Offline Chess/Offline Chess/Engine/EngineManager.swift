@@ -113,8 +113,13 @@ actor EngineManager {
     /// `"e7e8q"`) for the position reached by playing `moves` from the
     /// starting position, using the given bot `difficulty`. With
     /// `allowCareless` off, never swaps in a random candidate line.
+    ///
+    /// The response stream can carry stray lines from an earlier search
+    /// (ChessKitEngine doesn't keep responses in order), so any move not
+    /// in `legalMoves` (engine LAN without a promotion suffix) is ignored.
     func bestMove(
         movesFromStart moves: [String],
+        legalMoves: Set<String>,
         difficulty: BotDifficulty,
         allowCareless: Bool = true
     ) async -> String? {
@@ -134,14 +139,19 @@ actor EngineManager {
         // First move of each MultiPV line, keyed by line number, so the
         // latest depth's candidates replace earlier ones.
         var candidates: [Int: String] = [:]
+        func isLegal(_ move: String) -> Bool {
+            legalMoves.contains(String(move.prefix(4)))
+        }
 
         for await response in stream {
             switch response {
             case let .info(info):
-                if let line = info.multipv, let move = info.pv?.first {
+                if let line = info.multipv, let move = info.pv?.first, isLegal(move) {
                     candidates[line] = move
                 }
             case let .bestmove(move, _):
+                // A stray reply from an earlier search; this one's is still to come.
+                guard isLegal(move) else { continue }
                 if allowCareless,
                     Double.random(in: 0..<1) < difficulty.carelessMoveChance,
                     let careless = candidates.values.randomElement()
