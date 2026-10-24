@@ -16,20 +16,24 @@ struct AnalysisBoardView: View {
     let positions: [ChessGame]
     let moves: [MoveAnalysis]
     let skin: BoardSkin
+    /// Whose mistakes "Next mistake" steps through; the board is drawn
+    /// from this side.
+    var reviewedColor: Piece.Color = .white
     @Binding var ply: Int
 
     private var currentMove: MoveAnalysis? {
         ply > 0 && ply <= moves.count ? moves[ply - 1] : nil
     }
 
-    /// Plies of moves worth reviewing: inaccuracies, mistakes and blunders.
+    /// Plies of the reviewed side's moves worth looking at again:
+    /// inaccuracies, mistakes and blunders.
     private var keyMomentPlies: [Int] {
-        moves.filter { [.inaccuracy, .mistake, .blunder].contains($0.judgment) }.map(\.ply)
+        moves.keyMomentPlies(for: reviewedColor)
     }
 
     var body: some View {
         VStack(spacing: 12) {
-            BoardView(game: positions[min(ply, positions.count - 1)], skin: skin)
+            BoardView(game: positions[min(ply, positions.count - 1)], skin: skin, flipped: reviewedColor == .black)
                 .allowsHitTesting(false)
                 .overlay {
                     Color.clear
@@ -129,9 +133,11 @@ struct AnalysisBoardView: View {
             Button {
                 jumpToNextKeyMoment()
             } label: {
-                Label("Next mistake", systemImage: "exclamationmark.triangle.fill")
+                Text("Next mistake")
                     .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, minHeight: 22)
             }
             .buttonStyle(.bordered)
             .tint(Color.judgmentColor(.mistake))
@@ -175,5 +181,12 @@ struct AnalysisBoardView: View {
     private func jumpToNextKeyMoment() {
         guard let next = keyMomentPlies.first(where: { $0 > ply }) ?? keyMomentPlies.first else { return }
         ply = next
+    }
+}
+
+extension [MoveAnalysis] {
+    /// Plies of `color`'s inaccuracies, mistakes and blunders, in order.
+    func keyMomentPlies(for color: Piece.Color) -> [Int] {
+        filter { $0.color == color && [.inaccuracy, .mistake, .blunder].contains($0.judgment) }.map(\.ply)
     }
 }

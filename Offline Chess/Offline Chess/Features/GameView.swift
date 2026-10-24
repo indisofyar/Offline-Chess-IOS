@@ -267,6 +267,7 @@ struct GameView: View {
             resultDescription: result.description,
             mode: game.mode,
             botDifficulty: game.mode == .onePlayer ? game.botDifficulty : nil,
+            playerColor: game.mode == .onePlayer ? game.humanColor : .white,
             date: Date()
         )
     }

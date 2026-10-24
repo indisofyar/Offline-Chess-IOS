@@ -16,8 +16,12 @@ import ChessKit
 struct PixelBoardView: View {
     let game: ChessGame
     var skin: BoardSkin = .pixel
+    /// Overrides which side is drawn at the bottom; defaults to the game's own orientation.
+    var flipped: Bool?
 
     @State private var drag: PieceDrag?
+
+    private var isFlipped: Bool { flipped ?? game.isBoardFlipped }
 
     // Measurements of the `PixelBoard` assets, in sprite pixels.
     private static let boardWidth: CGFloat = 390
@@ -83,7 +87,7 @@ struct PixelBoardView: View {
     /// Squares in drawing order: top row (furthest away) to bottom row,
     /// left to right.
     private func square(at index: Int) -> Square {
-        boardSquare(row: index / 8, column: index % 8, flipped: game.isBoardFlipped)
+        boardSquare(row: index / 8, column: index % 8, flipped: isFlipped)
     }
 
     /// The square under `location` (in view points), if any.
@@ -93,12 +97,12 @@ struct PixelBoardView: View {
         let column = Int((x / Self.cellWidth).rounded(.down))
         let row = Int((y / Self.cellHeight).rounded(.down))
         guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
-        return boardSquare(row: row, column: column, flipped: game.isBoardFlipped)
+        return boardSquare(row: row, column: column, flipped: isFlipped)
     }
 
     /// Top-left corner of a square, in sprite pixels from the view's origin.
     private func origin(of square: Square) -> CGPoint {
-        let position = boardPosition(of: square, flipped: game.isBoardFlipped)
+        let position = boardPosition(of: square, flipped: isFlipped)
         return CGPoint(
             x: Self.gridOrigin.x + CGFloat(position.column) * Self.cellWidth,
             y: Self.headroom + Self.gridOrigin.y + CGFloat(position.row) * Self.cellHeight

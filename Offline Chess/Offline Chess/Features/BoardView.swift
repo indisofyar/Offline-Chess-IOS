@@ -12,12 +12,16 @@ import ChessKit
 struct BoardView: View {
     let game: ChessGame
     let skin: BoardSkin
+    /// Overrides which side is drawn at the bottom; defaults to the game's own orientation.
+    var flipped: Bool?
 
     @State private var drag: PieceDrag?
 
+    private var isFlipped: Bool { flipped ?? game.isBoardFlipped }
+
     var body: some View {
         if skin.usesPixelArt {
-            PixelBoardView(game: game, skin: skin)
+            PixelBoardView(game: game, skin: skin, flipped: flipped)
         } else {
             flatBoard
         }
@@ -35,7 +39,7 @@ struct BoardView: View {
                     HStack(spacing: 0) {
                         ForEach(0..<8, id: \.self) { column in
                             squareView(
-                                square: boardSquare(row: row, column: column, flipped: game.isBoardFlipped),
+                                square: boardSquare(row: row, column: column, flipped: isFlipped),
                                 size: cell
                             )
                         }
@@ -99,7 +103,7 @@ struct BoardView: View {
         let column = Int((location.x / cell).rounded(.down))
         let row = Int((location.y / cell).rounded(.down))
         guard (0..<8).contains(column), (0..<8).contains(row) else { return nil }
-        return boardSquare(row: row, column: column, flipped: game.isBoardFlipped)
+        return boardSquare(row: row, column: column, flipped: isFlipped)
     }
 
     @ViewBuilder

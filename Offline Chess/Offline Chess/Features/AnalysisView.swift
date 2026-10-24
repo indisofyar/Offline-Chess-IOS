@@ -23,6 +23,8 @@ struct AnalysisView: View {
     @State private var selectedPly = 0
     /// Replayed games for each position, built once results are available.
     @State private var positions: [ChessGame] = []
+    /// Whether "Next mistake" steps through the opponent's moves instead of the player's.
+    @State private var reviewingOpponent = false
 
     init(record: CompletedGameRecord, previewResult: AnalysisResult? = nil) {
         self.record = record
@@ -31,6 +33,9 @@ struct AnalysisView: View {
 
     private var isPremium: Bool { appState.purchaseManager.isPremium }
     private var canAnalyze: Bool { appState.usageTracker.canUseAnalysis(isPremium: isPremium) }
+    private var reviewedColor: Piece.Color {
+        reviewingOpponent ? record.playerColor.opposite : record.playerColor
+    }
 
     var body: some View {
         Group {
@@ -42,6 +47,13 @@ struct AnalysisView: View {
         }
         .navigationTitle("Analysis")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let result = analysisResult {
+                ToolbarItem(placement: .topBarTrailing) {
+                    reviewMenu(result)
+                }
+            }
+        }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }
@@ -56,8 +68,12 @@ struct AnalysisView: View {
                     positions: positions,
                     moves: result.moves,
                     skin: appState.boardSkin,
+                    reviewedColor: reviewedColor,
                     ply: $selectedPly
                 )
+                // Claim space before the move list so the board stays as
+                // large as it is during the game.
+                .layoutPriority(1)
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
@@ -79,6 +95,28 @@ struct AnalysisView: View {
             }
         }
         .onAppear(perform: buildPositionsIfNeeded)
+    }
+
+    private func reviewMenu(_ result: AnalysisResult) -> some View {
+        Menu {
+            Button {
+                reviewingOpponent.toggle()
+                // Start on the newly reviewed side's first mistake.
+                let color = reviewingOpponent ? record.playerColor.opposite : record.playerColor
+                if let first = result.moves.keyMomentPlies(for: color).first {
+                    selectedPly = first
+                }
+            } label: {
+                if reviewingOpponent {
+                    Label("See your mistakes", systemImage: "person")
+                } else {
+                    Label("See opponent's mistakes", systemImage: "arrow.triangle.2.circlepath")
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+        }
+        .accessibilityLabel("More")
     }
 
     private var preAnalysisLayout: some View {

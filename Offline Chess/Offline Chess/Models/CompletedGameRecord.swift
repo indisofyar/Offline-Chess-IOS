@@ -13,6 +13,8 @@ struct CompletedGameRecord {
     let resultDescription: String
     let mode: GameMode
     let botDifficulty: BotDifficulty?
+    /// The side the player was on; White in pass-and-play.
+    var playerColor: Piece.Color = .white
     let date: Date
 
     var sanMoves: [String] { moves.map(\.san) }
